@@ -1,0 +1,7 @@
+Kapitel,Geschätzte Seiten,Zweck & Anmerkung
+1. Einleitung,                  3 - 5 Seiten,       "Hinführung, Problem, Ziel. Prägnant sein."
+2. Grundlagen / Related Work,   10 - 15 Seiten,     "Zeigt, dass du das Feld verstehst. Nicht übertreiben, kein Lehrbuch schreiben."
+3. Konzept / Methodik,          10 - 15+ Seiten,    "Herzstück 1: Dein Plan, deine Architektur, deine Methodik-Auswahl."
+4. Implementierung,             10 - 15+ Seiten,    Herzstück 2: Deine technische Leistung. Code-Snippets (nur die wichtigsten!)
+5. Evaluation / Ergebnisse,     10 - 15+ Seiten,    "Herzstück 3: Deine Ergebnisse & Analyse. Grafiken, Tabellen, Interpretation."
+6. Fazit / Ausblick,            2 - 4 Seiten,       "Zusammenfassung, Einordnung, Ausblick. Auf den Punkt kommen."

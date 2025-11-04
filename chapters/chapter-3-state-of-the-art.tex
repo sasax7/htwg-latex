@@ -1,0 +1,83 @@
+\chapter{State of the Art (Related Work)}
+\label{chap:related_work}
+
+% This chapter reviews existing literature to situate this thesis within the
+% current research landscape. It reviews specific algorithms (Section 3.1),
+% their application to the energy domain (Section 3.2), and concludes
+% by identifying the research gap this thesis will address (Section 3.3).
+
+\section{Implementations of Detection Algorithms}
+\label{sec:sota_algorithms}
+% This section reviews specific, named algorithms from the literature,
+% building on the categories defined in Section 2.4.
+
+\subsection{Statistical and Classical Machine Learning Methods}
+\label{sec:sota_classical}
+% TODO: Describe model-based statistical approaches (from your old template)
+These methods are often used as efficient baselines.
+\begin{itemize}
+    \item \textbf{ARIMA/SARIMA:} (Autoregressive Integrated Moving Average). Models the time series and flags points with high residuals as anomalous \cite{ExampleARIMAPaper}.
+    \item \textbf{Isolation Forest (IF):} An ensemble method that "isolates" outliers. It is very efficient and scales well \cite{Liu2008_IF}.
+    \item \textbf{One-Class SVM (OC-SVM):} A kernel-based method that learns a boundary around the "normal" data \cite{Scholkopf2001_OCSVM}.
+    \item \textbf{DBSCAN:} A density-based clustering algorithm that identifies points in low-density regions as outliers \cite{Ester1996_DBSCAN}.
+\end{itemize}
+
+\subsection{Deep Learning Methods}
+\label{sec:sota_deep_learning}
+% TODO: Describe neural network approaches (from your old template)
+Deep learning is powerful for capturing complex, non-linear patterns.
+\begin{itemize}
+    \item \textbf{LSTM-based Autoencoders (LSTM-AE):} This architecture combines the sequential power of LSTMs with the reconstruction-based anomaly detection of an Autoencoder. It is a very common approach for time series \cite{Malhotra2016_LSTM_AD}.
+    \item \textbf{LSTM-based Prediction:} Simple LSTM networks are trained to predict the next time step; a large prediction error indicates an anomaly.
+\end{itemize}
+
+\subsection{Foundation Models for Time Series}
+\label{sec:sota_foundation_models}
+% TODO: This is the newest category.
+A recent paradigm shift involves using large, pre-trained Foundation Models.
+\begin{itemize}
+    \item \textbf{Probabilistic Forecasting Models:} Models like \textbf{Moirai} \cite{Moirai2024} and \textbf{Chronos} \cite{Chronos2024} are pre-trained on vast public datasets (including energy data). They can provide probabilistic (quantile) forecasts in a zero-shot or few-shot (finetuned) manner, making them ideal for prediction-based anomaly detection.
+    \item \textbf{General-Purpose Models:} \textbf{MOMENT} \cite{Goswami2024_MOMENT} is a foundation model pre-trained for multiple tasks, including explicit anomaly detection.
+\end{itemize}
+
+\section{Applications in Energy Anomaly Detection}
+\label{sec:sota_applications}
+% TODO: This is the most important part of this chapter.
+% You must find, read, and summarize *actual* papers.
+% This section reviews existing research that specifically applies anomaly
+% detection methods (from 3.1) to energy data (from 2.1).
+
+\subsection{Applications in Commercial and Residential Buildings}
+\label{sec:sota_buildings}
+% TODO: Find 3-5 papers that do this.
+For example: \cite{ExamplePaperBuilding2021} used an LSTM-based Autoencoder to detect anomalies in HVAC systems of a university building. They found...
+Another study by \cite{ExamplePaperSmartHome2022} compared Isolation Forest and OC-SVM for smart home data and found that...
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+\subsection{Applications in Industrial and Grid-Level Data}
+\label{sec:sota_grid}
+% TODO: Find 3-5 papers that do this.
+For example: \cite{ExamplePaperGrid2020} focused on anomaly detection in smart grid phase measurements (PMU data) using...
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+\subsection{Comparative Studies and Benchmarks}
+\label{sec:sota_benchmarks}
+% TODO: Find 1-2 papers that *compare* many methods.
+A recent benchmark by \cite{ExampleBenchmarkPaper2023} evaluated five different algorithms on a public energy dataset. Their findings indicate that... The TSB-UAD benchmark \cite{Paparrizos2022_TSB} also provides extensive comparison, although...
+
+\section{Research Gap and Contribution}
+\label{sec:research_gap}
+% TODO: Based on the related work (3.1, 3.2), what is missing?
+% This is the justification for *your* thesis.
+%
+% Example gaps:
+% - "While many studies use classical DL (like LSTMs), the application of *Foundation Models* (like Moirai) for anomaly detection in a real-world commercial building context is still unexplored."
+% - "Most research focuses on public benchmarks. There is a gap in applying these methods to a specific, proprietary IoT platform and integrating them into a production environment."
+% - "There is no direct comparison between a finetuned Foundation Model (Moirai) and a classical, efficient model (Isolation Forest) for the specific task of HVAC anomaly detection."
+%
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+% TODO: State your contribution.
+This thesis aims to fill this gap by...
+(e.g., "...by designing, implementing, and evaluating an anomaly detection system integrated into the [Firma X] IoT platform. It will systematically compare a state-of-the-art Foundation Model (Moirai) using probabilistic forecasting against a highly efficient classical model (Isolation Forest)...")
+This leads directly to the methodological choices in the next chapter.

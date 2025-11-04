@@ -1,0 +1,63 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{ynt/global//global/global/global}
+    \entry{Geim2001}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=40f0ba5816a970378fff1e96ae8538f7}{%
+           family={Geim},
+           familyi={G\bibinitperiod},
+           given={A.\bibnamedelimi K.},
+           giveni={A\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=3404920c88c564886551850cee7b9744}{%
+           family={Tisha},
+           familyi={T\bibinitperiod},
+           given={H.\bibnamedelimi A.\bibnamedelimi M.\bibnamedelimi S.},
+           giveni={H\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim S\bibinitperiod},
+           prefix={ter},
+           prefixi={t\bibinitperiod}}}%
+      }
+      \strng{namehash}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{fullhash}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{fullhashraw}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{bibnamehash}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{authorbibnamehash}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{authornamehash}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{authorfullhash}{258dc4a2e0e71c0d125122c5419c7d97}
+      \strng{authorfullhashraw}{258dc4a2e0e71c0d125122c5419c7d97}
+      \field{labelalpha}{GT01}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Physica B: Condensed Matter}
+      \field{title}{Detection of earth rotation with a diamagnetically levitating gyroscope}
+      \field{volume}{294--295}
+      \field{year}{2001}
+      \field{pages}{736\bibrangedash 739}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1016/S0921-4526(00)00753-5
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

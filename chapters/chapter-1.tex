@@ -1,0 +1,43 @@
+\chapter{Introduction}
+\label{chap:introduction}
+
+\section{Motivation and Problem Statement}
+Energy efficiency and resource conservation are paramount challenges in the context of global climate change and rising operational costs. In both industrial and residential settings, energy consumption data is being collected at an unprecedented scale, largely due to the widespread adoption of smart meters and Internet of Things (IoT) devices \cite{SomeSmartMeterPaper2023}.
+
+While this data holds immense value, it also presents a significant challenge: identifying consumption patterns that deviate from the norm. These \emph{anomalies} can represent critical information, such as:
+\begin{itemize}
+    \item Equipment malfunction or failure,
+    \item Inefficient operational processes,
+    \item Data integrity issues from faulty sensors, or
+    \item Potential for energy savings and process optimization.
+\end{itemize}
+
+The manual analysis of these vast, high-velocity time series datasets is impractical. Automated methods are required to detect these anomalies reliably and in near real-time. However, defining a "normal" energy profile is complex due to factors like seasonality (daily, weekly, yearly cycles), weather dependencies, and stochastic user behavior. This complexity makes simple threshold-based detection methods ineffective, leading to a high rate of false positives or missed detections.
+
+\section{Research Goal and Objectives}
+The primary goal of this thesis is to design, implement, and evaluate a robust system for anomaly detection in energy consumption time series data. This work aims to compare different algorithmic approaches to identify the most suitable method for a given energy dataset.
+
+To achieve this goal, the following key objectives are defined:
+\begin{enumerate}
+    \item \textbf{Literature Review:} To investigate the fundamentals of time series anomaly detection and review the current state-of-the-art (Related Work) specific to energy data.
+    \item \textbf{Data Preprocessing:} To select a suitable energy dataset and develop a preprocessing pipeline to handle missing values, normalize data, and engineer relevant features.
+    \item \textbf{Model Implementation:} To implement and train several detection models, likely including a statistical baseline (e.g., ARIMA) and one or more machine learning models (e.g., Isolation Forest, Autoencoder).
+    \item \textbf{Evaluation:} To define and apply appropriate evaluation metrics (e.g., Precision, Recall, F1-Score) to systematically compare the performance of the implemented models.
+\end{enumerate}
+
+\section{Scope and Delimitations}
+This thesis focuses on \textbf{unsupervised anomaly detection}, as labeled anomaly data is rare and expensive to obtain in real-world energy scenarios. The primary input will be univariate energy consumption time series. While external factors like weather or building occupancy are acknowledged as influential, their integration as exogenous variables is considered outside the primary scope of this work but will be discussed as potential future work.
+
+Furthermore, this work is concerned with the \textbf{detection} of anomalies, not their \textbf{diagnosis}. The system will flag a data point or sequence as anomalous, but it will not perform a root-cause analysis of the anomaly's origin.
+
+\section{Structure of the Thesis}
+This document is organized into six chapters:
+
+\begin{description}
+    \item[Chapter 1 (Introduction)] motivates the research topic, defines the core problem, and outlines the goals and structure of this thesis.
+    \item[Chapter 2 (Foundations and Related Work)] discusses the theoretical background of energy time series data and anomaly detection. It reviews existing academic literature (Related Work) to identify current approaches and an existing research gap.
+    \item[Chapter 3 (Conception and Methodology)] presents the conceptual design of the proposed system. It details the selected dataset, the data preprocessing pipeline, and the theoretical foundation of the chosen detection algorithms.
+    \item[Chapter 4 (Implementation)] describes the technical realization of the concepts from Chapter 3, including the software stack (e.g., Python, scikit-learn, TensorFlow) and key implementation details.
+    \item[Chapter 5 (Evaluation and Results)] details the experiments conducted to assess the performance of the implemented models. The results are presented, visualized, and critically discussed.
+    \item[Chapter 6 (Conclusion and Future Work)] summarizes the key findings of the thesis, answers the initial research questions, and provides an outlook on potential future research directions.
+\end{description}

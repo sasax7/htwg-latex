@@ -1,0 +1,23 @@
+Viele Studierende finden diese Reihenfolge am effizientesten, da sie dem Arbeitsfortschritt folgt:
+
+Starte in der Mitte (Konzept & Implementierung):
+
+Kapitel 3 (Konzept/Methodik): Beginne hier, sobald dein Plan steht. Schreibe auf, was du vorhast, welche Algorithmen du wählst und warum.
+
+Kapitel 4 (Implementierung): Dies schreibst du parallel zur Programmierarbeit. Es ist ein "Bautagebuch". Du dokumentierst, welche Bibliotheken du nutzt, wie du die Datenpipeline aufbaust und welche Hürden du nimmst.
+
+Schaffe die Basis (Grundlagen):
+
+Kapitel 2 (Grundlagen/Stand der Technik): Das schreibst du meist parallel zu Schritt 1. Die Literaturrecherche (Stand der Technik) informiert ja dein Konzept (Kapitel 3). Diesen Teil kannst du gut "abarbeiten", sobald deine Recherche steht.
+
+Werte deine Arbeit aus (Evaluation):
+
+Kapitel 5 (Evaluation/Ergebnisse): Sobald deine Implementierung läuft und Ergebnisse produziert, fängst du mit diesem Kapitel an. Du beschreibst die Experimente, erstellst Grafiken und Tabellen und interpretierst die Ergebnisse.
+
+Bilde den Rahmen (Fazit & Einleitung):
+
+Kapitel 6 (Fazit/Ausblick): Jetzt, wo du die Ergebnisse (Kapitel 5) hast, kannst du sie zusammenfassen und bewerten.
+
+Kapitel 1 (Einleitung): Als Letztes. Du weißt jetzt genau, was dein Ziel war (Kapitel 3), wie du es umgesetzt hast (Kapitel 4), was rauskam (Kapitel 5) und wie du es bewertest (Kapitel 6). Jetzt kannst du den Leser perfekt an dieses Thema heranführen.
+
+Tipp: Auch wenn du die Einleitung als Letztes schreibst – erstelle dir ganz am Anfang eine Arbeitsversion der Einleitung (nur 1-2 Absätze) mit deiner genauen Zielsetzung oder Forschungsfrage. Diese dient dir selbst als Kompass, damit du nicht vom Weg abkommst.

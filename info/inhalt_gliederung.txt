@@ -1,0 +1,115 @@
+1.Introduction
+
+Das ist bereits eine sehr starke Gliederung für dein Grundlagen-Kapitel. Sie führt den Leser logisch vom Anwendungsfall (Smart Building) über die Daten (Zeitreihen) zum Problem (Anomalien) und den Lösungsansätzen (Methoden-Kategorien).
+
+Aufbauend darauf könntest du noch zwei weitere Themenblöcke in die "Fundamentals" aufnehmen, die dir später in der Arbeit (insbesondere bei der Evaluation und Implementierung) sehr helfen werden.
+
+Hier ist der erweiterte Vorschlag:
+
+💡 Vorschlag 1: Vertiefung der für dich relevanten Methode
+Dein jetziger Punkt "Was sind die Kategorien..." ist eine gute Übersicht. Da du dich aber stark für probabilistische Prognosen interessierst, könntest du diesen Punkt ausbauen, um deine spätere Methodenauswahl in Kapitel 4/5 vorzubereiten.
+
+Erweiterter Punkt 2.4: Kategorien von Erkennungsmethoden
+
+2.4.1 Distanz- und Dichtebasierte Methoden
+
+(Kurz erklären, z.B. Isolation Forest, LOF, Matrix Profile )
+
+
+
+2.4.2 Vorhersagebasierte Methoden (Prediction-based) – Vertiefung
+
+Hier legst du die Grundlage für deine spätere Lösung.
+
+
+Grundprinzip: Erkläre die Logik: Ein Modell lernt das "normale" Verhalten und sagt den nächsten Schritt voraus. Die Abweichung von der Realität ist der Anomalie-Score.
+
+
+
+Unterscheide (wichtig für dich!):
+
+Punkt-Prognose (Point Forecasting): Das Modell sagt einen Wert voraus (z.B. "21.5°C"). Der Score ist der Fehler (z.B. |actual - predicted|).
+
+Probabilistische Prognose (Probabilistic Forecasting): Das Modell sagt eine Wahrscheinlichkeitsverteilung oder ein Konfidenzintervall voraus (z.B. "Der Wert liegt mit 95% Wahrscheinlichkeit zwischen 21.0°C und 22.0°C").
+
+Deine Definition von Anomalie: Hier definierst du fundamental, dass eine Anomalie vorliegt, wenn der reale Messwert das vorhergesagte Intervall verlässt. Das ist eine viel robustere Definition als bei der Punkt-Prognose und leitet perfekt zu deiner Methodik in Kapitel 5 über.
+
+📈 Vorschlag 2: Grundlagen der Evaluierung
+Du hast ein Kapitel 7 "Evaluation und Ergebnisse". Damit der Leser in Kapitel 7 versteht, was du da misst, musst du die Messgrößen (Metrics) in den Grundlagen definieren. Das ist ein sehr wichtiger, oft vergessener Punkt.
+
+Neuer Punkt 2.5: Grundlagen der Evaluierung von Anomalieerkennung
+
+
+Die Herausforderung: Erkläre kurz, warum die Evaluierung von Zeitreihen-Anomalien schwierig ist (z.B. "Wann ist eine Anomalie 'gefunden'? Wenn ein einziger Punkt markiert ist? Was ist mit einer leichten Zeitverzögerung?").
+
+
+
+
+Standard-Metriken (Punktbasiert):
+
+Definiere kurz die Konfusionsmatrix (True Positive (TP), False Positive (FP), False Negative (FN), True Negative (TN)).
+
+Definiere Precision, Recall und F1-Score.
+
+Zeitreihen-spezifische Metriken (Sequenzbasiert):
+
+Erkläre (wie in deiner PDF erwähnt), warum punktbasierte Metriken oft versagen (z.B. "Misalignment" oder "Lag"-Problem).
+
+
+
+Stelle das Konzept von Range-based oder Event-based Metriken vor (z.B. Range-AUC oder VUS (Volume Under the Surface) ), die toleranter gegenüber leichten Verschiebungen sind und ganze anomale Ereignisse bewerten.
+
+🤖 (Optional) Vorschlag 3: Grundlagen der Modell-Architekturen
+Wenn dein "State of the Art" (Kapitel 3) und deine "Implementierung" (Kapitel 6) sehr tief in Deep Learning einsteigen, könntest du hier die Basis-Architekturen erklären.
+
+Neuer Punkt 2.6: Relevante Modell-Architekturen (Basiswissen)
+
+
+Was ist ein Rekurrentes Neuronales Netz (LSTM/GRU)? (Kurz: Modelle mit "Gedächtnis", gut für Sequenzen).
+
+
+Was ist ein Autoencoder? (Kurz: Ein Modell zum Komprimieren und Rekonstruieren von Daten. Der Rekonstruktionsfehler wird als Anomalie-Score genutzt).
+
+
+Was ist ein Transformer? (Kurz: Das Modell-Backbone von LLMs, das Zusammenhänge über "Self-Attention" lernt).
+
+Was ist ein Foundation Model? (Kurz: Ein sehr großes Modell, das auf riesigen, diversen Daten vortrainiert wurde und dann per "Zero-Shot" oder "Finetuning" auf spezifische Probleme (wie deine Energiedaten) angewendet wird).
+
+
+2. Grundlagen (Background)
+
+    2.1 Anwendungsbereich: Smart Buildings und Energiemanagement
+
+    2.2 Datenbasis: Zeitreihen (Univariat vs. Multivariat)
+
+    2.3 Problemstellung: Arten von Anomalien (Punkt, Kontext, Kollektiv)
+
+    2.4 Kategorien der Erkennungsmethoden
+
+    2.4.1 Überblick: Distanz-, Dichte- und Vorhersagebasierte Ansätze
+
+    2.4.2 Vertiefung: Logik der Vorhersagebasierten Anomalieerkennung (Punkt- vs. Probabilistische Prognose)
+
+    2.5 Evaluierungsmethodik: Metriken zur Erfolgsmessung
+
+    2.5.1 Punktbasierte Metriken (Precision, Recall, F1-Score)
+
+    2.5.2 Sequenzbasierte Metriken (z.B. VUS/Range-based)
+
+    (Optional, falls viel DL genutzt wird)
+
+    2.6 Grundlagen moderner Architekturen (z.B. Transformer, Foundation Models)
+
+
+3.State of the Art (oder: Related Work)
+    Welche konkreten Algorithmen und Paper (z.B. LSTM-AD, Matrix Profile, Isolation Forest) gibt es zu diesen Kategorien?
+    
+4.Proposed Approach (oder: Conceptual Approach / My Considerations for a Solution)
+
+5.Conception and Methodology (oder: Design and Methodology)
+
+6.Implementation
+
+7.Evaluation and Results
+
+8.Conclusion and Future Outlook (oder: Conclusion and Future Work)
