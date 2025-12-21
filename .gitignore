@@ -3,7 +3,8 @@
 ###
 *.ttf
 
-
+pythonscripts/
+.venv/
 #### joe made this: http://goel.io/joe
 #### macos ####
 # General
@@ -12,7 +13,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*

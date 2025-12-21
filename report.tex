@@ -1,5 +1,13 @@
 \documentclass[]{htwg-report}
 
+% Glossaries + acronyms
+\usepackage[acronym]{glossaries}
+\makeglossaries
+
+% Convenience: keep using \ac{...} in the text,
+% internally mapped to glossaries' \gls{...}
+\newcommand{\ac}[1]{\gls{#1}}
+
 \addbibresource{./bib/report.bib}
 
 \begin{document}
@@ -34,6 +42,12 @@
 \input{abstract}
 
 \tableofcontents
+
+% Load glossary/acronym definitions and print lists
+\input{glossaries}
+\glsaddall[types=main]
+\printglossary[title={Glossary}]
+\printglossary[type=\acronymtype,title={Acronyms}]
 
 %% Use Arabic numerals for the page numbers of the chapters.
 \mainmatter

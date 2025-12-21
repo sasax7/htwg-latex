@@ -1,83 +1,53 @@
-\chapter{State of the Art (Related Work)}
-\label{chap:related_work}
 
-% This chapter reviews existing literature to situate this thesis within the
-% current research landscape. It reviews specific algorithms (Section 3.1),
-% their application to the energy domain (Section 3.2), and concludes
-% by identifying the research gap this thesis will address (Section 3.3).
+\chapter{Related Work}
+\label{chap:state-of-the-art}
 
-\section{Implementations of Detection Algorithms}
-\label{sec:sota_algorithms}
-% This section reviews specific, named algorithms from the literature,
-% building on the categories defined in Section 2.4.
+The identification of building energy anomalies requires an algorithmic framework that aligns with the structural and physical constraints established in Chapter~\ref{chap:fundamentals}. This chapter examines the current State of the Art (SOTA)---defined as the most advanced level of development in a technical field---to identify the most suitable detection methodology for the multivariate and contextual requirements of the research.
 
-\subsection{Statistical and Classical Machine Learning Methods}
-\label{sec:sota_classical}
-% TODO: Describe model-based statistical approaches (from your old template)
-These methods are often used as efficient baselines.
-\begin{itemize}
-    \item \textbf{ARIMA/SARIMA:} (Autoregressive Integrated Moving Average). Models the time series and flags points with high residuals as anomalous \cite{ExampleARIMAPaper}.
-    \item \textbf{Isolation Forest (IF):} An ensemble method that "isolates" outliers. It is very efficient and scales well \cite{Liu2008_IF}.
-    \item \textbf{One-Class SVM (OC-SVM):} A kernel-based method that learns a boundary around the "normal" data \cite{Scholkopf2001_OCSVM}.
-    \item \textbf{DBSCAN:} A density-based clustering algorithm that identifies points in low-density regions as outliers \cite{Ester1996_DBSCAN}.
-\end{itemize}
+Existing research is evaluated through a systematic analysis of established benchmarks, which are standardized tests used to compare the performance of different algorithms. The subsequent sections study these benchmarks to determine which methodologies demonstrate quantifiable results in resolving the complexities of energy consumption signals.
 
-\subsection{Deep Learning Methods}
-\label{sec:sota_deep_learning}
-% TODO: Describe neural network approaches (from your old template)
-Deep learning is powerful for capturing complex, non-linear patterns.
-\begin{itemize}
-    \item \textbf{LSTM-based Autoencoders (LSTM-AE):} This architecture combines the sequential power of LSTMs with the reconstruction-based anomaly detection of an Autoencoder. It is a very common approach for time series \cite{Malhotra2016_LSTM_AD}.
-    \item \textbf{LSTM-based Prediction:} Simple LSTM networks are trained to predict the next time step; a large prediction error indicates an anomaly.
-\end{itemize}
+\section{Evaluation Frameworks and Metric Reliability}
+\label{sec:success-metrics}
 
-\subsection{Foundation Models for Time Series}
-\label{sec:sota_foundation_models}
-% TODO: This is the newest category.
-A recent paradigm shift involves using large, pre-trained Foundation Models.
-\begin{itemize}
-    \item \textbf{Probabilistic Forecasting Models:} Models like \textbf{Moirai} \cite{Moirai2024} and \textbf{Chronos} \cite{Chronos2024} are pre-trained on vast public datasets (including energy data). They can provide probabilistic (quantile) forecasts in a zero-shot or few-shot (finetuned) manner, making them ideal for prediction-based anomaly detection.
-    \item \textbf{General-Purpose Models:} \textbf{MOMENT} \cite{Goswami2024_MOMENT} is a foundation model pre-trained for multiple tasks, including explicit anomaly detection.
-\end{itemize}
+The objective assessment of anomaly detection performance requires metrics that accurately reflect physical detection capabilities while remaining robust against technical noise. Recent meta-analyses identify a systemic ``illusion of progress'' in the field, where flawed evaluation measures consistently overestimate model efficacy.
 
-\section{Applications in Energy Anomaly Detection}
-\label{sec:sota_applications}
-% TODO: This is the most important part of this chapter.
-% You must find, read, and summarize *actual* papers.
-% This section reviews existing research that specifically applies anomaly
-% detection methods (from 3.1) to energy data (from 2.1).
+\subsection{Conventional Standards and Point-Wise Limitations}
+\label{subsec:f1-standard}
+The Standard-F1 score, defined as the harmonic mean of precision and recall, remains the most prevalent metric in current \ac{TSAD} benchmarks. While it provides a scalar value for imbalanced datasets, its application to temporal sequences introduces several structural flaws:
 
-\subsection{Applications in Commercial and Residential Buildings}
-\label{sec:sota_buildings}
-% TODO: Find 3-5 papers that do this.
-For example: \cite{ExamplePaperBuilding2021} used an LSTM-based Autoencoder to detect anomalies in HVAC systems of a university building. They found...
-Another study by \cite{ExamplePaperSmartHome2022} compared Isolation Forest and OC-SVM for smart home data and found that...
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+\begin{description}
+	\item[Assumption of Independence:] Traditional F1 calculations treat each timestamp as an \ac{i.i.d.} observation, ignoring the sequential nature of building data where anomalies typically persist over an extended range.
 
-\subsection{Applications in Industrial and Grid-Level Data}
-\label{sec:sota_grid}
-% TODO: Find 3-5 papers that do this.
-For example: \cite{ExamplePaperGrid2020} focused on anomaly detection in smart grid phase measurements (PMU data) using...
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+	\item[Sensitivity to Temporal Misalignment:] Minor misalignments in human-labeled ground truth lead to disproportionate penalties. A prediction offset by a single interval is penalized as both a false positive and a false negative, despite identifying the onset of a fault.
 
-\subsection{Comparative Studies and Benchmarks}
-\label{sec:sota_benchmarks}
-% TODO: Find 1-2 papers that *compare* many methods.
-A recent benchmark by \cite{ExampleBenchmarkPaper2023} evaluated five different algorithms on a public energy dataset. Their findings indicate that... The TSB-UAD benchmark \cite{Paparrizos2022_TSB} also provides extensive comparison, although...
+	\item[Lack of Sequence Awareness:] Point-wise metrics do not distinguish between successful detection of brief spikes and long-duration system failures.
+\end{description}
 
-\section{Research Gap and Contribution}
-\label{sec:research_gap}
-% TODO: Based on the related work (3.1, 3.2), what is missing?
-% This is the justification for *your* thesis.
-%
-% Example gaps:
-% - "While many studies use classical DL (like LSTMs), the application of *Foundation Models* (like Moirai) for anomaly detection in a real-world commercial building context is still unexplored."
-% - "Most research focuses on public benchmarks. There is a gap in applying these methods to a specific, proprietary IoT platform and integrating them into a production environment."
-% - "There is no direct comparison between a finetuned Foundation Model (Moirai) and a classical, efficient model (Isolation Forest) for the specific task of HVAC anomaly detection."
-%
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+\subsection{Point-Adjustment and the Illusion of Progress}
+\label{subsec:illusion-point-adjustment}
+To compensate for the difficulty of point-wise detection, many benchmarks utilize \ac{PA} (Point-Adjustment). Under this heuristic, an entire anomalous segment is counted as a true positive if the model identifies at least one individual point within it. Research by \textcite{liu2024elephant} identifies this as the primary cause of inflated performance reports. \ac{PA} is shown to favor ``noisy'' anomaly scores, allowing random predictions to achieve F1 scores near 1.0, thereby masking the failure of imprecise models.
 
-% TODO: State your contribution.
-This thesis aims to fill this gap by...
-(e.g., "...by designing, implementing, and evaluating an anomaly detection system integrated into the [Firma X] IoT platform. It will systematically compare a state-of-the-art Foundation Model (Moirai) using probabilistic forecasting against a highly efficient classical model (Isolation Forest)...")
-This leads directly to the methodological choices in the next chapter.
+\subsection{Comparison of Evaluation Scenarios}
+\label{subsec:metric-comparison}
+To quantify these reliability issues, \textcite{liu2024elephant} utilize synthetic prediction scenarios compared against a ground truth anomaly. As illustrated in Figure~\ref{fig:metric-reliability}, these range from perfect alignment (S8) to varying degrees of temporal lag (S1--S5) and completely random noise.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=1.0\textwidth]{images/vus-pr-vs-others.jpg}
+\caption{Reliability analysis of evaluation measures across different anomaly prediction scenarios. The red segment at the top represents the ground truth anomaly label, followed by various prediction signals (S1--S12 and random). The adjacent table indicates the resulting scores for threshold-independent and threshold-dependent metrics. Adapted from Liu and Paparrizos~\cite{liu2024elephant}.}
+\label{fig:metric-reliability}
+\end{figure}
+
+The adjacent data in the benchmark study reveals the specific failure points of conventional scoring:
+
+\begin{description}
+	\item[PA-F1 Bias:] The PA-F1 measure assigns a perfect score of 1.00 to scenarios with significant lags (S2, S3, S4). Most critically, it yields a high score (0.73) for continuous random data, suggesting a successful detection where none exists.
+
+	\item[Standard-F1 Rigidity:] While the Standard-F1 identifies random noise effectively (0.12), it fails to reward proximity. Predictions occurring slightly outside the boundary (S1, S5) receive a score of 0.00, providing no credit for identifying a deviation near the fault's boundary.
+\end{description}
+
+\subsection{Volume Under the Surface (VUS-PR) as a Robust Solution}
+\label{subsec:vus-pr}
+To resolve these contradictions, \ac{VUS-PR} (Volume Under the Surface--Precision Recall) is established as a more reliable measure. Unlike traditional metrics, it evaluates performance across a range of thresholds and incorporates a tolerance buffer around anomaly boundaries.
+
+The benchmark results demonstrate that \ac{VUS-PR} maintains low values for random signals (0.09) similar to the Standard-F1, yet provides graduated rewards for proximity in scenarios like S2 and S3 where Standard-F1 remains static. By operating in a threshold-independent manner, \ac{VUS-PR} ensures that the reported performance reflects the model's actual capability to identify the contextual shifts characteristic of building energy consumption.
