@@ -19,45 +19,421 @@
 
 \refsection{0}
   \datalist[entry]{ynt/global//global/global/global}
-    \entry{Geim2001}{article}{}{}
-      \name{author}{2}{}{%
-        {{hash=40f0ba5816a970378fff1e96ae8538f7}{%
-           family={Geim},
-           familyi={G\bibinitperiod},
-           given={A.\bibnamedelimi K.},
-           giveni={A\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
-        {{hash=3404920c88c564886551850cee7b9744}{%
-           family={Tisha},
-           familyi={T\bibinitperiod},
-           given={H.\bibnamedelimi A.\bibnamedelimi M.\bibnamedelimi S.},
-           giveni={H\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim S\bibinitperiod},
-           prefix={ter},
-           prefixi={t\bibinitperiod}}}%
+    \entry{su2019robust}{inproceedings}{}{}
+      \name{author}{6}{}{%
+        {{hash=4593b6e74f9bfdb949dc913e765bd304}{%
+           family={Su},
+           familyi={S\bibinitperiod},
+           given={Ya},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=fc02b26345e786a0c68db7ed5515f9dd}{%
+           family={Zhao},
+           familyi={Z\bibinitperiod},
+           given={Youjian},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=a31bb192b656c31aefafab4d1d477e29}{%
+           family={Niu},
+           familyi={N\bibinitperiod},
+           given={Chenhao},
+           giveni={C\bibinitperiod}}}%
+        {{hash=6e0407cf2820edaaaeebbc9f383e0490}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Rong},
+           giveni={R\bibinitperiod}}}%
+        {{hash=a4f1db50ce07b8d5024ad00d3a26c9a5}{%
+           family={Sun},
+           familyi={S\bibinitperiod},
+           given={Wei},
+           giveni={W\bibinitperiod}}}%
+        {{hash=26b02dc0af8c6f31cfc3df3a238db077}{%
+           family={Pei},
+           familyi={P\bibinitperiod},
+           given={Dan},
+           giveni={D\bibinitperiod}}}%
       }
-      \strng{namehash}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{fullhash}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{fullhashraw}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{bibnamehash}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{authorbibnamehash}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{authornamehash}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{authorfullhash}{258dc4a2e0e71c0d125122c5419c7d97}
-      \strng{authorfullhashraw}{258dc4a2e0e71c0d125122c5419c7d97}
-      \field{labelalpha}{GT01}
+      \strng{namehash}{e903b9ed2b136d1dfb01cf4650c1618a}
+      \strng{fullhash}{2b55130be69dc3fa75665c069ead29fc}
+      \strng{fullhashraw}{2b55130be69dc3fa75665c069ead29fc}
+      \strng{bibnamehash}{e903b9ed2b136d1dfb01cf4650c1618a}
+      \strng{authorbibnamehash}{e903b9ed2b136d1dfb01cf4650c1618a}
+      \strng{authornamehash}{e903b9ed2b136d1dfb01cf4650c1618a}
+      \strng{authorfullhash}{2b55130be69dc3fa75665c069ead29fc}
+      \strng{authorfullhashraw}{2b55130be69dc3fa75665c069ead29fc}
+      \field{labelalpha}{Su+19}
       \field{sortinit}{2}
       \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{journaltitle}{Physica B: Condensed Matter}
-      \field{title}{Detection of earth rotation with a diamagnetically levitating gyroscope}
-      \field{volume}{294--295}
-      \field{year}{2001}
-      \field{pages}{736\bibrangedash 739}
-      \range{pages}{4}
+      \field{booktitle}{Proceedings of the 25th ACM SIGKDD international conference on knowledge discovery \& data mining}
+      \field{title}{Robust anomaly detection for multivariate time series through stochastic recurrent neural network}
+      \field{year}{2019}
+      \field{pages}{2828\bibrangedash 2837}
+      \range{pages}{10}
+    \endentry
+    \entry{paparrizos2022tsb}{article}{}{}
+      \name{author}{6}{}{%
+        {{hash=c28927bb966cb6d440fc37f585184d5c}{%
+           family={Paparrizos},
+           familyi={P\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=a7df6bfb145f4164a2e38941b40abd06}{%
+           family={Kang},
+           familyi={K\bibinitperiod},
+           given={Yuhao},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=f286b8f76f2aa3253e841a5896a1c52d}{%
+           family={Boniol},
+           familyi={B\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+        {{hash=a10ec178d031d2e8ccfadd70714bf9cc}{%
+           family={Tsay},
+           familyi={T\bibinitperiod},
+           given={Ruey\bibnamedelima S},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=5dd9a3f3ecfded799322c136900994e2}{%
+           family={Palpanas},
+           familyi={P\bibinitperiod},
+           given={Themis},
+           giveni={T\bibinitperiod}}}%
+        {{hash=2b80efa845ff86794acc83783899dcf0}{%
+           family={Franklin},
+           familyi={F\bibinitperiod},
+           given={Michael\bibnamedelima J},
+           giveni={M\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {VLDB Endowment}%
+      }
+      \strng{namehash}{e17ca8fe295857868ec414fabb32d2af}
+      \strng{fullhash}{73ebce64ec255e54be64b3c271cfa33c}
+      \strng{fullhashraw}{73ebce64ec255e54be64b3c271cfa33c}
+      \strng{bibnamehash}{e17ca8fe295857868ec414fabb32d2af}
+      \strng{authorbibnamehash}{e17ca8fe295857868ec414fabb32d2af}
+      \strng{authornamehash}{e17ca8fe295857868ec414fabb32d2af}
+      \strng{authorfullhash}{73ebce64ec255e54be64b3c271cfa33c}
+      \strng{authorfullhashraw}{73ebce64ec255e54be64b3c271cfa33c}
+      \field{labelalpha}{Pap+22}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the VLDB Endowment}
+      \field{number}{8}
+      \field{title}{TSB-UAD: an end-to-end benchmark suite for univariate time-series anomaly detection}
+      \field{volume}{15}
+      \field{year}{2022}
+      \field{pages}{1697\bibrangedash 1711}
+      \range{pages}{15}
+    \endentry
+    \entry{liu2024elephant}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=7c7337373a8d8c9e482652f942bc915a}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Qinghua},
+           giveni={Q\bibinitperiod}}}%
+        {{hash=c28927bb966cb6d440fc37f585184d5c}{%
+           family={Paparrizos},
+           familyi={P\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{fullhash}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{fullhashraw}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{bibnamehash}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{authorbibnamehash}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{authornamehash}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{authorfullhash}{4663f85757d0537ba1709d14a6cb791b}
+      \strng{authorfullhashraw}{4663f85757d0537ba1709d14a6cb791b}
+      \field{labelalpha}{LP24}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Advances in Neural Information Processing Systems}
+      \field{title}{The elephant in the room: Towards a reliable time-series anomaly detection benchmark}
+      \field{volume}{37}
+      \field{year}{2024}
+      \field{pages}{108231\bibrangedash 108261}
+      \range{pages}{31}
+    \endentry
+    \entry{ansari2025chronos}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{10}{}{%
+        {{hash=41c1df44b5f36b0d60799a18f13c8345}{%
+           family={Ansari},
+           familyi={A\bibinitperiod},
+           given={Abdul\bibnamedelima Fatir},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=c695e4e0319891565c3a85e483d80f31}{%
+           family={Shchur},
+           familyi={S\bibinitperiod},
+           given={Oleksandr},
+           giveni={O\bibinitperiod}}}%
+        {{hash=8dd88653f65dfac6f6d53ee5bb0baae2}{%
+           family={Küken},
+           familyi={K\bibinitperiod},
+           given={Jaris},
+           giveni={J\bibinitperiod}}}%
+        {{hash=f331b5a584ef0eb7ab62b16ddf9fc0a8}{%
+           family={Auer},
+           familyi={A\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=5358f633bba1a072b8d4ef0e35c3b50d}{%
+           family={Han},
+           familyi={H\bibinitperiod},
+           given={Boran},
+           giveni={B\bibinitperiod}}}%
+        {{hash=2ed72f6f0ac89030f49a5a25a629ad49}{%
+           family={Mercado},
+           familyi={M\bibinitperiod},
+           given={Pedro},
+           giveni={P\bibinitperiod}}}%
+        {{hash=a3edf426c05893fe420aba2808f54985}{%
+           family={Rangapuram},
+           familyi={R\bibinitperiod},
+           given={Syama\bibnamedelima Sundar},
+           giveni={S\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=b2fa30baa7440b5771ad403f32d4d4a2}{%
+           family={Shen},
+           familyi={S\bibinitperiod},
+           given={Huibin},
+           giveni={H\bibinitperiod}}}%
+        {{hash=83fc4e25ebfa5fbdb577e9666d000bab}{%
+           family={Stella},
+           familyi={S\bibinitperiod},
+           given={Lorenzo},
+           giveni={L\bibinitperiod}}}%
+        {{hash=e29804fa90fc95b4f5ac7f0cdae3ad75}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Xiyuan},
+           giveni={X\bibinitperiod}}}%
+      }
+      \strng{namehash}{3b3f6d1c99c023b1a9d6ab544472af0c}
+      \strng{fullhash}{30aca4f5f90c79c1770088d9f4b41c3f}
+      \strng{fullhashraw}{30aca4f5f90c79c1770088d9f4b41c3f}
+      \strng{bibnamehash}{3b3f6d1c99c023b1a9d6ab544472af0c}
+      \strng{authorbibnamehash}{3b3f6d1c99c023b1a9d6ab544472af0c}
+      \strng{authornamehash}{3b3f6d1c99c023b1a9d6ab544472af0c}
+      \strng{authorfullhash}{30aca4f5f90c79c1770088d9f4b41c3f}
+      \strng{authorfullhashraw}{30aca4f5f90c79c1770088d9f4b41c3f}
+      \field{labelalpha}{Ans+25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2510.15821}
+      \field{title}{Chronos-2: From univariate to universal forecasting}
+      \field{year}{2025}
+    \endentry
+    \entry{AZZALINI2025115069}{article}{}{}
+      \name{author}{6}{}{%
+        {{hash=3d1e8be50eaba254d686a1e1f20d2fe5}{%
+           family={Azzalini},
+           familyi={A\bibinitperiod},
+           given={Davide},
+           giveni={D\bibinitperiod}}}%
+        {{hash=92908b28f0a9976a904f4a025b76d28c}{%
+           family={Flammini},
+           familyi={F\bibinitperiod},
+           given={Benedetta},
+           giveni={B\bibinitperiod}}}%
+        {{hash=ba7c0f77954638a76d5ff3d926df4f54}{%
+           family={Emanuele},
+           familyi={E\bibinitperiod},
+           given={Claudio\bibnamedelima Alfredo},
+           giveni={C\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=2cf7c21cdb6bc5947d43116994e93c44}{%
+           family={Guadagno},
+           familyi={G\bibinitperiod},
+           given={Antonio},
+           giveni={A\bibinitperiod}}}%
+        {{hash=11635d4b4dd85c1c4e6a19df1347d0e7}{%
+           family={Ragaini},
+           familyi={R\bibinitperiod},
+           given={Enrico},
+           giveni={E\bibinitperiod}}}%
+        {{hash=f8ee40e36cc6ccb3b5cbd50454d3dea4}{%
+           family={Amigoni},
+           familyi={A\bibinitperiod},
+           given={Francesco},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{8be71f42b5c2f081b95f53173c91c492}
+      \strng{fullhash}{8be13c29c371b33837fdf502422e1a13}
+      \strng{fullhashraw}{8be13c29c371b33837fdf502422e1a13}
+      \strng{bibnamehash}{8be71f42b5c2f081b95f53173c91c492}
+      \strng{authorbibnamehash}{8be71f42b5c2f081b95f53173c91c492}
+      \strng{authornamehash}{8be71f42b5c2f081b95f53173c91c492}
+      \strng{authorfullhash}{8be13c29c371b33837fdf502422e1a13}
+      \strng{authorfullhashraw}{8be13c29c371b33837fdf502422e1a13}
+      \field{labelalpha}{Azz+25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Environmental pollution and energy saving are particularly relevant issues nowadays due to their direct consequences on our daily life and on the future of our planet. Possible countermeasures to reduce pollution and to facilitate energy saving include detecting faults and abnormal usage patterns in the electricity consumption of buildings, which account for 38% of global energy use. In this paper, we focus on data-driven anomaly detection and experimentally compare several topologies of deep autoencoders for detecting anomalies in the electrical energy consumption of buildings. We consider both plain and variational autoencoders, with different mixtures of recurrent, convolutional, and attention layers, and two different anomaly scores, based on reconstruction error and on reconstruction probability. Experiments are performed on two datasets collected from real office buildings. Results suggest that autoencoders represent a valuable tool for detecting anomalies in the electricity consumption of buildings. However, depending on the regularity and noise of the data, the choice of the right autoencoder topology and anomaly score can become important, as some combinations may be better suited than others. Results also show that integrating attention in autoencoders requires particular care due to the bypassing phenomenon. In response, we propose a novel self-attention mechanism, which is less susceptible to bypassing.}
+      \field{issn}{0378-7788}
+      \field{journaltitle}{Energy and Buildings}
+      \field{title}{An empirical evaluation of deep autoencoders for anomaly detection in the electricity consumption of buildings}
+      \field{volume}{327}
+      \field{year}{2025}
+      \field{pages}{115069}
+      \range{pages}{1}
       \verb{doi}
-      \verb 10.1016/S0921-4526(00)00753-5
+      \verb https://doi.org/10.1016/j.enbuild.2024.115069
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S037877882401185X
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S037877882401185X
+      \endverb
+      \keyw{Anomaly detection,Electricity consumption,Deep autoencoders,Self-attention}
+    \endentry
+    \entry{ElionaOntologies}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
+           family={{Eliona IoT Platform}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{bibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorbibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{labelalpha}{Eli25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Online documentation}
+      \field{title}{Introduction to Ontologies}
+      \field{urlday}{20}
+      \field{urlmonth}{12}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://doc.eliona.io/collection/eliona-english/academy/introduction-to-ontologies
+      \endverb
+      \verb{url}
+      \verb https://doc.eliona.io/collection/eliona-english/academy/introduction-to-ontologies
       \endverb
     \endentry
+    \entry{hela2025tsfm-energy-ad}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=1be05fb415ed1bae9a4c5ed9b53abadf}{%
+           family={Hela},
+           familyi={H\bibinitperiod},
+           given={Basu},
+           giveni={B\bibinitperiod}}}%
+        {{hash=ffb42a0d248fd6d9a93aa55e96247197}{%
+           family={Handigol},
+           familyi={H\bibinitperiod},
+           given={Praveen\bibnamedelima Prasad},
+           giveni={P\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+        {{hash=28e5dc652866b9fd9e4b7f3d33a3bcc6}{%
+           family={Arjunan},
+           familyi={A\bibinitperiod},
+           given={Pandarasamy},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{fullhash}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{fullhashraw}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{bibnamehash}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{authorbibnamehash}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{authornamehash}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{authorfullhash}{f19bd960baeb1fc39e7e4817b600749f}
+      \strng{authorfullhashraw}{f19bd960baeb1fc39e7e4817b600749f}
+      \field{labelalpha}{HHA25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 16th ACM International Conference on Future and Sustainable Energy Systems}
+      \field{isbn}{9798400711251}
+      \field{series}{E-Energy '25}
+      \field{title}{Are Time Series Foundation models good for Energy Anomaly Detection?}
+      \field{year}{2025}
+      \field{pages}{656\bibrangedash 665}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1145/3679240.3734633
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/3679240.3734633
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/3679240.3734633
+      \endverb
+      \keyw{Foundation Models,Anomaly Detection,Time Series Analysis,Transformer Architecture,Deep Learning,Transfer Learning,Self-supervised Learning}
+    \endentry
+    \entry{morshedi2025dl-iot-ad}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=01d5b83248480c22a2de7d86fe463c2e}{%
+           family={Morshedi},
+           familyi={M\bibinitperiod},
+           given={Roya},
+           giveni={R\bibinitperiod}}}%
+        {{hash=60ac9fea0d56a56e919e2ca1357725d4}{%
+           family={Matinkhah},
+           familyi={M\bibinitperiod},
+           given={S.\bibnamedelimi Mojtaba},
+           giveni={S\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{fullhash}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{fullhashraw}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{bibnamehash}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{authorbibnamehash}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{authornamehash}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{authorfullhash}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \strng{authorfullhashraw}{f6fded8bace9edf690cf4dc0f14a0ac7}
+      \field{labelalpha}{MM25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{ABSTRACT With the rapid growth of the Internet of Things (IoT) and the widespread deployment of smart connected devices, ensuring the security of these networks has become a critical challenge. Anomaly detection is considered one of the most effective techniques for identifying abnormal behaviors and cyber-attacks in IoT networks. In recent years, deep learning techniques have gained significant attention in this domain due to their powerful capabilities in automatic feature extraction and modeling complex patterns. This review article provides a comprehensive overview of deep learning methods applied to anomaly detection in IoT networks. Various deep architectures including CNNs, LSTMs, autoencoders, GANs, and hybrid models are analyzed and compared. In addition, commonly used datasets such as CICIDS2017, BoT-IoT, NSL-KDD, and TON\_IoT are introduced and evaluated in terms of their quality and suitability for deep learning-based models. Key challenges including the lack of real-world data, high resource consumption, vulnerability to adversarial attacks, and lack of interpretability are also discussed. Finally, potential future research directions are suggested to enhance the performance and real-world applicability of deep learning-based anomaly detection systems in IoT environments.}
+      \field{journaltitle}{Engineering Reports}
+      \field{number}{9}
+      \field{title}{A Comprehensive Review of Deep Learning Techniques for Anomaly Detection in IoT Networks: Methods, Challenges, and Datasets}
+      \field{volume}{7}
+      \field{year}{2025}
+      \field{pages}{e70415}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb https://doi.org/10.1002/eng2.70415
+      \endverb
+      \verb{eprint}
+      \verb https://onlinelibrary.wiley.com/doi/pdf/10.1002/eng2.70415
+      \endverb
+      \verb{urlraw}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1002/eng2.70415
+      \endverb
+      \verb{url}
+      \verb https://onlinelibrary.wiley.com/doi/abs/10.1002/eng2.70415
+      \endverb
+      \keyw{anomaly detection,Autoencoder,CNN,dataset,deep learning,GAN,GNN,Internet of Things,LSTM,network security}
+    \endentry
   \enddatalist
+  \missing{Boniol2023NewTrends}
+  \missing{SomeSmartMeterPaper2023}
 \endrefsection
 \endinput
 

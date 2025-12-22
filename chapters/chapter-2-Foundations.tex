@@ -266,6 +266,57 @@ Methodological approaches to anomaly detection are categorized into functional f
 
 The research presented in this thesis focuses specifically on prediction-based methodologies. The technical justification for this prioritization, particularly regarding the integration of multivariate environmental drivers and the establishment of energy baselines, is provided in the subsequent chapters.
 
+\section{Benchmarking Foundations}
+\label{sec:benchmarking-foundations}
+
+To determine how well an anomaly detection system works, it must be evaluated against a dataset where the correct outcomes are already known. This process is referred to as benchmarking and relies on comparing the model's decisions with a reference set of labels, the \gls{ground-truth}, to quantify detection performance.
+
+\subsection{Binary Labeling and Ground Truth}
+\label{subsec:binary-labeling-ground-truth}
+
+The foundation of any benchmark is a labeled dataset in which each observation is assigned a binary label indicating whether it is considered normal or anomalous. In this context, a label of $0$ denotes normal operation and a label of $1$ denotes an anomaly, such as a fault or unusual event. When an algorithm analyzes this dataset, it produces its own sequence of binary decisions. Benchmarking assesses how closely these model-generated labels align with the original \gls{ground-truth} labels.
+
+\subsection{The Confusion Matrix: Four Possible Outcomes}
+\label{subsec:confusion-matrix}
+
+When the model's predictions are compared to the \gls{ground-truth}, each observation falls into one of four categories. These outcomes are summarized in a \gls{confusion-matrix}, which serves as a scorecard for the detection system:
+
+\begin{description}
+	\item[True Positive (\ac{TP}):] The model correctly identifies an anomaly; the ground truth label is $1$ and the model predicts $1$.
+
+	\item[True Negative (\ac{TN}):] The model correctly identifies normal operation; the ground truth label is $0$ and the model predicts $0$.
+
+	\item[False Positive (\ac{FP}):] The model raises a false alarm; it predicts an anomaly ($1$) while the ground truth label is normal ($0$).
+
+	\item[False Negative (\ac{FN}):] The model misses an anomaly; the ground truth label is $1$ but the model predicts normal operation ($0$).
+\end{description}
+
+These four counts form the quantitative basis for most evaluation metrics used in anomaly detection benchmarks.
+
+\subsection{Measuring Success: Precision, Recall, and the F1 Score}
+\label{subsec:precision-recall-f1}
+
+The entries of the \gls{confusion-matrix} are used to derive summary metrics that characterize different aspects of a model's performance. Three central measures in anomaly detection are \gls{precision}, \gls{recall}, and the \ac{F1} score.
+
+\gls{precision} quantifies how reliable the alarms are. It answers the question: when the model flags an anomaly, how often is this decision correct? Formally, precision is defined as the ratio of correctly detected anomalies to all observations that the model classified as anomalous,
+\begin{equation}
+	\mathrm{Precision} = \frac{TP}{TP + FP}.
+\end{equation}
+A high precision value indicates that the model rarely raises false alarms.
+
+\gls{recall} quantifies how many anomalies are successfully detected. It answers the question: of all anomalies that actually occurred, how many did the model identify? Recall is defined as
+\begin{equation}
+	\mathrm{Recall} = \frac{TP}{TP + FN}.
+\end{equation}
+A high recall value indicates that the model is sensitive to anomalous behavior and misses few faults.
+
+In practice, there is often a trade-off between \gls{precision} and \gls{recall}. A model that labels almost every point as anomalous may achieve high recall but very low precision, whereas an overly conservative model may exhibit the opposite behavior. The \ac{F1} score provides a single scalar summary by combining precision and recall through their harmonic mean,
+\begin{equation}
+	F1 = 2 \cdot \frac{\mathrm{Precision} \cdot \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}.
+\end{equation}
+
+A high \ac{F1} score indicates that the model achieves a balanced compromise: it detects a large fraction of true anomalies while keeping the number of false alarms at a manageable level. In many benchmarking studies, this score is used as the primary indicator for ranking competing detection methods.
+
 \section{Synthesis of Foundations}
 \label{subsec:synthesis-foundations}
 The examination of building energy data in Section~\ref{sec:building-energy-data} and the formal taxonomies of anomaly detection in Section~\ref{sec:fundamentals-anomaly-detection} reveal a highly specialized operational environment. Because building energy consumption is an aggregate signal driven by a complex causal chain (see Subsection~\ref{subsec:causal-chain-energy-consumption}), it is fundamentally characterized as a multivariate time series (see Subsection~\ref{subsec:building-energy-multivariate-ts}). This multidimensionality necessitates a focus on contextual point anomalies (see Subsection~\ref{subsec:taxonomy-anomalies}), as abnormality is defined primarily relative to the prevailing environmental and operational state rather than to a single global range. Furthermore, the temporal aggregation of energy data into 15-minute or hourly intervals (see Subsection~\ref{subsec:statistical-distribution-stochastic-noise}) effectively transforms high-frequency rhythmic faults into detectable point-based deviations in the aggregated series.

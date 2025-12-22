@@ -7,8 +7,82 @@
 \newacronym{HVAC}{HVAC}{heating, ventilation and air conditioning}
 \newacronym{i.i.d.}{i.i.d.}{independent and identically distributed}
 \newacronym{PA}{PA}{point adjustment}
+\newacronym{AUC-PR}{AUC-PR}{Area Under the Precision-Recall Curve}
+\newacronym{AUC-ROC}{AUC-ROC}{Area Under the Receiver Operating Characteristic Curve}
+\newacronym{Standard-F1}{Standard-F1}{standard point-wise F1 score}
+\newacronym{PA-F1}{PA-F1}{Point-Adjustment F1 score}
 \newacronym{VUS-PR}{VUS-PR}{Volume Under the Surface--Precision Recall}
 \newacronym{BL}{BL}{base load}
 
+% Learning paradigms
+\newacronym{ML}{ML}{machine learning}
+\newacronym{DL}{DL}{deep learning}
+
+% Model types and concepts
+\newacronym{FM}{FM}{foundation model}
+\newacronym{TSFM}{TSFM}{time-series foundation model}
+\newacronym{LSTM}{LSTM}{long short-term memory network}
+\newacronym{GAN}{GAN}{generative adversarial network}
+\newacronym{IoT}{IoT}{Internet of Things}
+\newacronym{RP}{RP}{reconstruction probability}
+\newacronym{RE}{RE}{reconstruction error}
+
+% Benchmarks and methods
+\newacronym{TSB-AD}{TSB-AD}{Time Series Benchmark for Anomaly Detection}
+\newacronym{Sub-PCA}{Sub-PCA}{subspace principal component analysis}
+\newacronym{CNN}{CNN}{convolutional neural network}
+\newacronym{OmniAnomaly}{OmniAnomaly}{stochastic recurrent neural network model OmniAnomaly}
+
+% Model families
+\newacronym{VAE}{VAE}{Variational Autoencoder}
+\newacronym{SRNN}{SRNN}{stochastic recurrent neural network}
+
+% Classification outcomes
+\newacronym{TP}{TP}{true positive}
+\newacronym{TN}{TN}{true negative}
+\newacronym{FP}{FP}{false positive}
+\newacronym{FN}{FN}{false negative}
+\newacronym{F1}{F1}{F1 score}
+
 % Example glossary entries (add more as needed)
 \newglossaryentry{anomaly}{name={anomaly},description={observation or pattern that deviates significantly from a defined notion of normality}}
+
+\newglossaryentry{precision}{%
+	name={precision},%
+	description={for anomaly detection, the proportion of predicted anomalous points or segments that are actually anomalous (true positives divided by all positive predictions)}%
+}
+
+\newglossaryentry{recall}{%
+	name={recall},%
+	description={for anomaly detection, the proportion of truly anomalous points or segments that are correctly detected (true positives divided by all actual anomalies)}%
+}
+
+\newglossaryentry{ground-truth}{%
+	name={ground truth},%
+	description={reference labels that indicate for each observation whether it is considered normal or anomalous, used as a standard when evaluating detection performance}%
+}
+
+\newglossaryentry{confusion-matrix}{%
+	name={confusion matrix},%
+	description={tabular summary of prediction results that counts true positives, true negatives, false positives, and false negatives}%
+}
+
+\newglossaryentry{benchmark}{%
+	name={benchmark},%
+	description={standardized dataset and evaluation protocol used to compare the performance of different anomaly detection methods}%
+}
+
+\newglossaryentry{mislabeling}{%
+	name={mislabeling},%
+	description={inconsistent assignment of anomaly labels to similar or identical patterns, which distorts evaluation by inflating false-negative rates}%
+}
+
+\newglossaryentry{run-to-failure-bias}{%
+	name={run-to-failure bias},%
+	description={systematic placement of anomalies at the end of a time series, which favors models that exploit positional cues rather than genuine signal deviations}%
+}
+
+\newglossaryentry{unrealistic-anomaly-ratio}{%
+	name={unrealistic anomaly ratio},%
+	description={an artificially high proportion of anomalous observations in a dataset compared to real-world systems, which can lead to over-optimistic performance estimates}%
+}

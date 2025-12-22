@@ -5,6 +5,7 @@
 
 pythonscripts/
 .venv/
+venv/
 #### joe made this: http://goel.io/joe
 #### macos ####
 # General
