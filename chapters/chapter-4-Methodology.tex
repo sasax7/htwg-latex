@@ -1,0 +1,263 @@
+\chapter{Methodology}
+\label{chap:methodology}
+
+\section{System Context: The Eliona IoT Platform}
+
+The anomaly detection system is integrated into the Eliona IoT Platform, which serves as the operational environment for data ingestion, storage, and visualization\parencite{ElionaAssets,ElionaStructuringAssets}. The platform is designed to be deployment-agnostic, operating primarily as a high-scale, Azure-based Cloud environment while preserving on-premise capability for local installations. This flexibility allows the same anomaly detection logic to be applied consistently across multiple tenants and deployment models.
+
+\subsection{Modular System Architecture}
+
+The platform is organized into three functional layers to ensure data isolation, scalability, and high throughput. Computational logic and specialized microservices reside within the backend, while the frontend provides a comprehensive interface for visualization and user interaction.
+
+\begin{description}
+	\item[Device Layer] This layer connects physical assets via standard protocols such as MQTT, HTTP, BACnet, and Modbus. Each device is uniquely authenticated using credentials or tokens to ensure secure and traceable data ingestion.
+
+	\item[Server Layer (Backend)] This layer acts as the centralized processing hub. It manages asset registration, hosts the Rule Engine for automated data processing, and coordinates specialized microservices for distinct use cases\parencite{ElionaRuleChains,ElionaRules}. Time-series data is stored in a single PostgreSQL instance extended with TimescaleDB, using conventional relational tables for metadata and Hypertables for high-frequency telemetry.
+
+	\item[Application and Frontend Layer] This layer serves as the primary interface for end-users. It provides real-time dashboards, maps, reports, and analytics for monitoring energy health and interacting with the results produced by backend calculations.
+\end{description}
+
+\subsection{Asset Modeling and Hierarchical Ontology}
+
+A central feature of the platform is its asset model and ontology, which provide a structured representation of entities and their relationships in building data \parencite{ElionaOntologies,ElionaAssetModelingTemplates}. Assets are created from reusable templates and organized into multiple hierarchies to reflect both physical layout and functional dependencies.
+
+\begin{description}
+	\item[Assets and Templates] Assets represent any entity in the system, including sensors, rooms, equipment, or entire buildings. Each asset is instantiated from an Asset Template that predefines attributes such as temperature, occupancy, or power demand, enabling consistent metadata across sites and tenants\parencite{ElionaAssets,ElionaAssetModelingTemplates}.
+
+	\item[Dual Hierarchies] Assets are structured into two complementary tree structures. The Local Tree captures physical location (e.g., Site~$\rightarrow$ Building~$\rightarrow$ Floor), while the Functional Tree represents technical relationships (e.g., Heating System~$\rightarrow$ Pump~$\rightarrow$ Flow Sensor)\parencite{ElionaStructuringAssets}. This dual representation enables both spatial and functional queries over the same telemetry.
+
+	\item[Tagging] Metadata tags are assigned to assets to group and query telemetry points across different buildings and tenants. Tags provide an additional semantic layer on top of the hierarchies, which is utilized by the anomaly detection system to retrieve relevant multivariate signals for model training and scoring.
+\end{description}
+
+\section{System Requirements Specification}
+
+The following specifications define the mandatory capabilities of the integrated system and the detection methodology.
+
+\subsection{Functional Requirements}
+
+The functional requirements focus on the operational utility and the diagnostic depth of the system within the hierarchical building environment.
+
+\begin{description}
+	\item[Multi-Tenancy and Hierarchy Management] The system must facilitate the simultaneous processing of data for multiple tenants while ensuring strict data isolation between organizations. It must support a structural hierarchy where each tenant governs multiple sites, and each site contains diverse building complexes.
+
+	\item[License-Based Activation] The implementation must provide granular administrative control to activate or deactivate anomaly detection services for specific tenants based on their current license status.
+
+	\item[Multivariate Contextual Modeling] To identify context-dependent deviations, the architecture must integrate parallel sensor channels, specifically incorporating site-localized weather data to capture environmental dependencies.
+
+	\item[Financial Impact Quantification] The pipeline must automate the calculation of monetary costs associated with energy waste by quantifying the deviation between the observed consumption and the predicted normative mean.
+
+	\item[Automated Root Cause Analysis (RCA)] Detected anomalies must be traceable to their specific sensor or subsystem origin by leveraging the platform's functional tree and building ontology.
+
+	\item[Cross-Layer Observability] The system must detect faults across different operational planes, specifically identifying issues in the Supply Layer (e.g., generation failure) and the Control Layer (e.g., setpoint malfunctions), regardless of whether these issues were present during the initial baseline period.
+
+	\item[Non-Stationary Adaptation] Detection models must adapt to evolving building characteristics, such as equipment degradation or slow behavioral shifts, to maintain long-term accuracy.
+
+	\item[Anomaly Persistence Management] Mechanisms must be implemented to prevent recurring or persistent anomalies from being incorrectly integrated into the "normal" baseline, ensuring that continuous faults remain flagged as deviations.
+\end{description}
+
+\subsection{Operational and Data Integrity Requirements}
+
+These requirements define the technical resilience and performance constraints necessary for high-throughput production environments.
+
+\begin{description}
+	\item[Data Quality Resilience] The ingestion and preparation layer must identify and bypass data integrity issues, such as transmission gaps and sensor recovery spikes, to prevent the generation of false-positive alerts.
+
+	\item[Exclusion of External Drivers] The system must distinguish between internal technical faults and extraordinary external events, such as extreme outdoor temperature fluctuations, to avoid incorrectly marking demand-side spikes as system anomalies.
+
+	\item[Manual Baseline Configuration] The interface must allow users to manually define "healthy" baseline periods, ensuring the model establishes a normative profile based on optimal operational states.
+
+	\item[Scalability and Parallelism] The architecture must be horizontally scalable, enabling the parallel processing of data streams across multiple buildings and sites to meet high-throughput requirements.
+\end{description}
+
+\section{Proposed High-Level Architecture}
+
+The proposed system utilizes a modular, microservice-oriented design to fulfill the requirements of multi-tenancy and scalability. It is realized through a closed-loop data pipeline that bridges the existing Eliona infrastructure with specialized detection logic.
+
+\subsection{Component Interaction and Data Flow}
+
+The architecture consists of three primary technical domains: the Eliona Core, the Anomaly Detection Microservice, and the Analytics Endpoint.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=1.0\textwidth]{images/first-high-level-architecture.jpg}
+\caption{High-level architecture of the integrated anomaly detection system, illustrating the interaction between the Eliona Core, the anomaly detection microservice, and the analytics endpoint.}
+\label{fig:high-level-architecture}
+\end{figure}
+
+\begin{description}
+	\item[Eliona Core (Backend and Database)] This domain serves as the source of truth, providing raw telemetry via the central PostgreSQL/TimescaleDB instance.
+
+	\item[Microservice Docker] Acting as the orchestration layer, this autonomous container manages the ingestion of multi-tenant data. It performs data preparation, which includes cleaning signal noise and transforming time-series data into multivariate tensors suitable for the model.
+
+	\item[Method Endpoint] This dedicated component hosts the detection algorithm. It receives the prepared data tensors and returns probabilistic scores to the microservice for final processing.
+
+	\item[Anomaly Object Creation] Upon receiving a detection signal, the microservice generates a structured anomaly object. This object, containing diagnostic data and financial impact, is written back to the Eliona database and subsequently visualized in the frontend via API~V1.
+\end{description}
+
+\subsection{Integration into the Azure Ecosystem}
+
+For cloud-based deployments, the architecture is embedded within Azure Kubernetes Services (AKS). This ensures that the microservice can scale horizontally to handle high-throughput requirements across multiple tenants. The use of Azure Database for PostgreSQL provides a robust, distributed foundation for the platform's metadata and telemetry.
+
+\section{Proof of Concept (PoC): Stochastic Feasibility}
+
+The PoC was implemented to validate the hypothesis that stochastic modeling can effectively address the non-normal distributions found in building energy telemetry. This iteration focused on the core detection mechanism and the integration of diagnostic layers.
+
+\subsection{MDN-Based Stochastic Prediction}
+
+The initial implementation utilized a Mixture Density Network (MDN) as the core detection logic. Unlike deterministic models, the MDN was trained to output a conditional probability distribution of consumption based on contextual features such as outdoor temperature and occupancy. By minimizing Negative Log-Likelihood (NLL), the model captured the multi-modal nature of the energy signals.
+
+\subsection{Diagnostic Integration: SHAP and LLM}
+
+To fulfill the requirements for Root Cause Analysis (RCA) and actionable insights, the PoC incorporated two diagnostic layers:
+
+\begin{description}
+	\item[Feature Interpretability] SHAP values were utilized to identify the specific contextual drivers influencing each prediction. For instance, if the occupancy feature exhibited high impact during a night-time anomaly, it indicated a likely fault in the lighting or HVAC scheduling.
+
+	\item[Natural Language Synthesis] The results from the SHAP analysis and the financial residuals were fed into a Large Language Model (LLM). This allowed the system to generate human-readable explanations and remediation steps, transforming abstract data into operational guidance.
+\end{description}
+
+\section{Critique of Sequential Forecasting for Anomaly Detection}
+\label{sec:critique-sequential}
+
+A dominant paradigm in time-series anomaly detection is the use of sequential forecasting models. In this approach, a model (e.g., RNN, LSTM, or Transformer) is trained to predict the next value $x_t$ based on a sliding window of historical values $(x_{t-w}, \ldots, x_{t-1})$ and potentially exogenous features. An anomaly is flagged if the deviation (residual) between the predicted value $\hat{x}_t$ and the actual value $x_t$ exceeds a threshold. While intuitively appealing, this autoregressive approach suffers from fundamental limitations when applied to sustained anomalies in industrial settings, particularly regarding error propagation and signal adaptation. To demonstrate these failure modes, a controlled synthetic experiment was conducted.
+
+\subsection{Synthetic Experimental Setup}
+
+A synthetic dataset was generated to simulate a predictable building energy profile: consumption is set to 10 units between 08:00 and 18:00 on weekdays, and 0 units otherwise. To evaluate detection capabilities, two distinct, sustained anomalies were injected:
+
+\begin{enumerate}
+	\item A ``night-shift'' anomaly with sustained consumption of 10 units during nighttime hours.
+	\item A ``weekend-work'' anomaly with sustained consumption of 5 units over a weekend.
+\end{enumerate}
+
+Three distinct forecasting models, plus an additional inference-time variant of the 24-hour model, were tested against this data to highlight different behavioral modes. The anomaly score is calculated as the absolute difference between actual and predicted values.
+
+\subsection{Failure Mode 1: Error Propagation and Instability}
+
+The first fundamental issue arises when a sequential model encounters substantial, previously unseen anomalous data. Because the model relies on past observations to generate future predictions, once an anomaly occurs, it enters the model's input window for the subsequent $w$ steps.
+
+Figure~\ref{fig:seq-24h-instability} illustrates this phenomenon using a model trained with a 24-hour historical window plus time-based features (time of day, \texttt{is\_weekend}).
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/seq-24h-window-plus-features.png}
+	\caption{Prediction behavior of a model using a 24~h historical window plus time features. The top panel shows actual vs. predicted values; the bottom panel shows the difference-based anomaly score. Note the erratic predictions even after the anomaly ends as the unseen data propagates through the sliding window.}
+	\label{fig:seq-24h-instability}
+\end{figure}
+
+When the sustained nighttime anomaly hits, it represents data completely outside the model's training distribution. The model fails to predict the onset (generating a high anomaly score initially). However, as these anomalous 10-unit values fill the 24-hour input window, the model's internal state becomes corrupted. It begins making erratic predictions, sometimes overestimating, sometimes underestimating, resulting in a noisy anomaly score signal. Crucially, this instability persists even after the actual anomaly has finished, as the ``poisoned'' window takes 24 hours to clear.
+
+\subsection{Failure Mode 2: Rapid Adaptation and the PA-F1 Illusion}
+
+The second failure mode is conversely related to models relying heavily on short-term autocorrelation. In many time series, the best predictor of $x_t$ is simply $x_{t-1}$. If a model learns this dependency strongly, it will rapidly ``adapt'' to a sustained anomaly.
+
+Figure~\ref{fig:seq-short-adaptation} shows a model trained only on the past five historical values, without contextual features.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/seq-5h-window-only.png}
+	\caption{Prediction behavior of a model using only a short (5-step) historical window. The model correctly identifies the onset of anomalies but rapidly adapts to the new level, causing the anomaly score to drop back to near zero while the anomaly is still ongoing.}
+	\label{fig:seq-short-adaptation}
+\end{figure}
+
+The model successfully flags the onset of both anomalies due to the sudden jump. However, within five time steps, the input window is filled with the anomalous values. The model quickly learns the new ``normal'' (e.g., that consumption is currently 10 at night) and predicts accordingly. The residual drops to near zero, and the anomaly is effectively missed for the majority of its duration.
+
+\subsubsection{Implications for Evaluation Metrics and Financial Impact}
+
+This behavior explains the heavy reliance in academic literature on Point Adjustment F1 (PA-F1) scores. In PA-F1, if a model detects a single point within a contiguous anomaly segment, the entire segment is counted as correctly detected. While this inflates benchmark scores, it masks the model's inability to track sustained deviations.
+
+For industrial applications requiring financial impact quantification, this failure mode is catastrophic. Calculating financial loss requires integrating the deviation over the entire duration of the event. A model that only flags the first 15 minutes of a 4-hour energy spike is useless for quantifying the total wasted energy.
+
+\subsection{Mitigation Strategies}
+
+There are two primary architectural strategies to resolve these sequential dependence issues.
+
+\subsubsection{Strategy A: Contextual Feature-Only Modeling}
+
+The most direct solution is to remove the autoregressive dependency entirely. By training a model to predict consumption based solely on contextual features (time, weather, occupancy) and ignoring past consumption values, error propagation is impossible.
+
+Figure~\ref{fig:features-only} demonstrates this approach. The prediction remains stable regardless of the actual input, providing a clean, continuous anomaly score throughout the duration of both events. While highly effective for context anomalies, this approach sacrifices the ability to model complex temporal dynamics and cannot leverage powerful sequential foundation models.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/features-only.png}
+	\caption{Behavior of a features-only model (no historical consumption input). The prediction relies solely on context (time/weekend), resulting in a stable baseline and accurate detection of sustained anomalies without adaptation.}
+	\label{fig:features-only}
+\end{figure}
+
+\subsubsection{Strategy B: Inference-Time Input Imputation}
+
+To retain the benefits of sequential modeling while mitigating error propagation, an inference-time correction mechanism can be introduced. If the anomaly score at step $t$ exceeds a defined threshold, the actual value $x_t$ is considered contaminated. Instead of feeding $x_t$ into the sliding window for step $t+1$, the model's own prediction $\hat{x}_t$ is imputed as a ``corrected'' value. In an online or periodically retrained setting, this also prevents the model from adapting its baseline to these anomalous segments, so similar future events are not reinterpreted as normal behaviour despite the non-stationarity of the raw building signal.
+
+Figure~\ref{fig:seq-corrected} applies this logic to the unstable 24-hour window model from Figure~\ref{fig:seq-24h-instability}. By replacing anomalous inputs with predictions, the sliding window remains clean, preventing the model from adapting to the anomaly or becoming unstable. This allows for accurate tracking of sustained anomalies while still using sequential architectures.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/seq-24h-window-plus-features-corrected.png}
+	\caption{The same 24-hour window model from Figure~\ref{fig:seq-24h-instability}, but applied with inference-time imputation. When an anomaly is detected, the predicted value replaces the actual value in the sliding window for future steps. This prevents error propagation and maintains a high anomaly score throughout the event.}
+	\label{fig:seq-corrected}
+\end{figure}
+
+\section{Statistical Limitations of Point and Gaussian Predictions}
+\label{sec:statistical-limitations}
+
+To isolate the effect of distributional assumptions on anomaly detection, a synthetic ``Variable Shift'' dataset was created. Each hourly sample toggles between a low-power regime ($0\text{--}1\,\text{kWh}$) and a high-power regime ($9\text{--}11\,\text{kWh}$) with a stochastic morning/evening schedule (approximately 60/40 split). A stuck-at fault of $5\,\text{kWh}$ was injected during a regular weekday to emulate a latent control failure. Figure~\ref{fig:comparison-means} shows that all three model families---deterministic dense regression, single-Gaussian prediction, and Mixture Density Networks (MDN)---deliver visually similar means, yet their anomaly scoring behavior diverges drastically.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-model-comparison.png}
+	\caption{Predicted means over the Variable Shift horizon. Dense, Gaussian, and MDN models track the two regimes, masking the scoring deficiencies discussed in Sections~\ref{subsec:mse-failure}--\ref{subsec:mdn-solution}.}
+	\label{fig:comparison-means}
+\end{figure}
+
+\subsection{The Failure of Mean Squared Error Minimization}
+\label{subsec:mse-failure}
+
+Dense regressors trained with Mean Squared Error (MSE) converge toward the global average of both regimes. In bimodal settings this leads to systematic bias: the model predicts approximately $5\,\text{kWh}$ regardless of whether the system is in its ``Off'' (low) or ``On'' (high) state. Consequently, perfectly normal behavior is scored as highly anomalous, whereas the injected stuck-at-$5$ event appears deceptively healthy because it matches the biased mean. The residual trace in Figure~\ref{fig:dense-failure} exposes this contradiction: the absolute error balloons whenever the device operates normally, yet it contracts when the genuine anomaly occurs.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-dense-panel.png}
+	\caption{Dense regressor residuals over the Variable Shift dataset. The mid-range prediction inflates anomaly scores for legitimate operating states, while the stuck-at-$5$ fault yields a small residual.}
+	\label{fig:dense-failure}
+\end{figure}
+
+\subsection{The Gaussian Distribution Paradox}
+\label{subsec:gaussian-paradox}
+
+A single-component Gaussian attempts to reconcile bimodality by inflating its variance. The resulting Probability Density Function (PDF) concentrates probability mass near the center---a region never visited by real data. The normalized log-likelihood trace (Figure~\ref{fig:gaussian-panel}) confirms that the stuck-at-$5$ anomaly sits inside the ``most likely'' area of the Gaussian, generating a low penalty. Meanwhile, legitimate regime values land in lower-density shoulders and spuriously raise the score. The heatmap in Figure~\ref{fig:gaussian-heatmap} makes the distortion visible: the green, high-probability band spans the median instead of the true modes.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-gaussian-panel.png}
+	\caption{Absolute log-likelihood trace for the single-Gaussian predictor. The stuck-at-$5$ anomaly aligns with the high-likelihood center, suppressing the score.}
+	\label{fig:gaussian-panel}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-gaussian-heatmap.png}
+	\caption{Per-timestep normalized PDF for the Gaussian model. High probability mass accumulates between the actual clusters, illustrating the variance-stretching paradox.}
+	\label{fig:gaussian-heatmap}
+\end{figure}
+
+\subsection{Solution: Mixture Density Networks}
+\label{subsec:mdn-solution}
+
+Mixture Density Networks address both issues by learning multiple kernels simultaneously. Each component can specialize in a particular operating mode, while the regions between components retain near-zero probability. Figure~\ref{fig:mdn-heatmap} shows how the MDN assigns green (high probability) bands only where data is observed, keeping the mid-range red. When log-likelihood is used as the anomaly score, the stuck-at-$5$ fault immediately falls into the valley between components, producing a sharp increase in $|\log p(x)|$ (Figure~\ref{fig:mdn-panel}). This probabilistic separation allows the MDN to quantify financial impact reliably: integrating the residual energy over time now reflects the true magnitude of the fault rather than artifacts of model bias.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-panel.png}
+	\caption{MDN absolute log-likelihood trace. The stuck-at-$5$ anomaly triggers a sustained spike because the value resides in a low-probability region between mixture components.}
+	\label{fig:mdn-panel}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-heatmap.png}
+	\caption{MDN normalized PDF heatmap. Two distinct high-probability ridges align with the real operating modes, while the middle band remains improbable.}
+	\label{fig:mdn-heatmap}
+\end{figure}
+
+ 

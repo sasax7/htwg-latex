@@ -1,0 +1,39 @@
+I would fist focus on the requirements wich are: 
+we want the anomaly detection to also give something like an financial impact of the anomaly.
+we want some kind of a root cause analysis of the anomaly with a possible explanation and possible actions.
+we want it to mainly find context point anomalies in multivariate timeseries
+we discovered that our data is mixture dencity based not normal destributed so a complex destribution forecast could make more sense than a singe value prediction.
+So we need a method that does all of that.
+I got an Idea for a method and that will be the first poc. I found mixture dencity networks mdn to do exactly that they give as output layer not a value but a mixture dencity and the loss is not mean squared error. I can then use them to train just on the features of the single timestamp to forecast the consumption so we give it the outdoor temperature the occupancy count the time features like time of day, day of week to predict a consumption destribution and then we can look if the actual value is outside the destribution and if so we have an anomaly the financial imact can then be calculated by the deviation of the predicted mean and the actual value. With the values that we have and possibly the shap value we can find out which features had the most impact on the prediction lets say from there we get that the hour of day and the occupancy value had the most impact we can then look at the actual values and can say the value is higher than expected for 4 am in the morning and no one being in the building. for the root cause analysis we have the ontology available we can do anomaly detection on each sub meter and find out wich sub meter had the most impact on the main meter anomaly and lets say that was the meter for the outside light that had the most impact we can then say that it was because someone left the lights on. Actually what I also did in the poc is actually implement all of that I also have images to show. I am also giving all the info to an LLM to then generate the possible explanation for the anomaly.
+What do you think about generating a table of what I want the method to be able to do and what it can deliver?
+
+
+no I mean a table with what the mathod can do like:
+multivariate detection, model normal destribution, model mixture distribution, financial impact quantification, root cause analysis, feature interpretability, detects context point anomalies well, healthy baseline can be chosen, doesnt miss anomalies because it is too good in forecasting them, maps the right features to the prediction, adapts with the non stationary data, doesnt mark demand layer anomalies, finds anomalies in control layer, finds anomalies in supply layer, doesnt mark transmition gaps and recoveries as anomalies, easy to implement, doesnt need fine tuning, zero shot capabilities. probably can seperate this into two tables one must have and the other nice to have and some are just general requirements that are not specific to the method
+I would have them as headline and then as rows have the models
+
+Functional Requirements
+Multi-Tenancy and Hierarchy Management: The system must handle multiple tenants simultaneously, ensuring data separation between different organizations. Each tenant must be able to manage multiple sites, with each site containing various buildings.
+
+License-Based Activation: Implementation must allow for granular control, enabling or disabling anomaly detection for specific tenants based on their current license status.
+
+Multivariate Contextual Modeling: To identify context-based deviations, the system must integrate parallel sensor channels, specifically including local weather data for each site to capture environmental dependencies.
+
+Financial Impact Quantification: The pipeline must calculate the monetary cost associated with energy waste by analyzing the deviation between observed consumption and the predicted normative mean.
+
+Automated Root Cause Analysis (RCA): Detected anomalies must be traced back to their specific sensor or subsystem origin via the building's physical ontology.
+
+Cross-Layer Observability: The system must be capable of identifying anomalies in the Supply Layer (e.g., generation issues) and the Control Layer (e.g., setpoint malfunctions), even if those issues were present during the baseline period.
+
+Non-Stationary Adaptation: The models must adapt to evolving building characteristics, such as equipment degradation, to maintain accuracy over time.
+
+Anomaly Persistence Management: The system should implement mechanisms to prevent recurring anomalies from being incorrectly absorbed into the "normal" baseline, ensuring that persistent faults remain flagged.
+
+4.1.2 Operational and Data Integrity Requirements
+Data Quality Resilience: The ingestion layer must identify and bypass transmission gaps and sensor recovery spikes to prevent the generation of false-positive alerts.
+
+Exclusion of External Drivers: The system must distinguish between internal system anomalies and extraordinary external events, such as extreme outdoor temperatures, to avoid marking demand-side fluctuations as technical faults.
+
+Manual Baseline Configuration: Users should have the option to manually define "healthy" baseline periods to ensure the model learns from optimal operational states.
+
+Scalability and Parallelism: The architecture must be scalable and capable of processing data streams for multiple buildings in parallel to handle high-throughput requirements.
