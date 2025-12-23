@@ -260,4 +260,81 @@ Mixture Density Networks address both issues by learning multiple kernels simult
 	\label{fig:mdn-heatmap}
 \end{figure}
 
+	\section{Benchmark Data Generation and Composition}
+	\label{sec:boptest-benchmark}
+
+	To compare the proposed methodology against established baselines, a comprehensive benchmark dataset was synthesized with the Building Optimization Performance Test Framework (BOPTEST)\parencite{BOPTEST}. BOPTEST provides high-fidelity building simulations that include weather, occupancy, and HVAC subsystems, offering a controlled sandbox for evaluating diagnostic strategies without legacy noise.
+
+	\subsection{Simulation Environment and Baseline Construction}
+
+	The ``Multizone Office Complex Air'' test case was selected as it emulates a large office with coupled thermal zones, AHUs, and realistic schedules.
+
+	\begin{description}
+		\item[Data fidelity] The simulator injects geographically consistent weather files, dynamic occupancy, and holiday calendars, ensuring the external drivers mirror commercial buildings.
+		\item[Integrity] Because all sensors are generated virtually, the baseline year is free of telemetry dropouts, frozen devices, or undocumented setpoint overrides, giving a clean reference profile for ``healthy'' operation.
+		\item[Temporal scope] A continuous year of data (15-minute granularity) was exported to capture seasonal shifts and enable out-of-season evaluation.
+	\end{description}
+
+	\subsection{Feature Selection and Control Layer Logic}
+
+	The raw export was decomposed into contextual features and consumption targets while deliberately excluding control-loop variables that could leak fault signatures.
+
+	\begin{description}
+		\item[Leakage mitigation] Control-layer signals (e.g., valve positions, supply setpoints) were omitted. If a stuck valve drives excess consumption and its command signal is provided to the model, the anomaly becomes ``explainable'' by the feature set and disappears in the residual.
+		\item[Included features] Exogenous drivers such as outdoor temperature, global horizontal irradiance, wind speed, occupancy counts, calendar flags (weekday/weekend, holidays), and cyclical encodings (hour-of-day, day-of-year).
+		\item[Target variables] Seventeen metered electricity channels including the aggregate main meter, chiller and boiler production meters, AHU fan feeds, pump circuits, and lighting zones. This enables both whole-building financial attribution and subsystem diagnostics.
+	\end{description}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{images/feature-improtance.png}
+	\caption{Empirical Pearson correlation of contextual and external drivers with the main electricity meter over the synthetic 2007 benchmark year.}
+	\label{fig:feature-importance}
+\end{figure}
+
+	\section{Experimental Data Segmentation and Anomaly Injection}
+	\label{sec:benchmark-anomalies}
+
+	To probe generalization and sample efficiency, the baseline year was sliced into multiple training/testing regimes and augmented with a bounded taxonomy of synthetic faults. Anomalous points never exceed 5\% of any derived dataset to preserve realism on the aggregated main meter.
+
+	\subsection{Segmentation Strategy}
+
+	\begin{itemize}
+		\item \textbf{Long-term:} Two non-overlapping six-month windows to analyze seasonal translation (e.g., winter learning, summer detection).
+		\item \textbf{Medium-term:} Four quarterly (three-month) windows to test model freshness requirements.
+		\item \textbf{Short-term:} Four two-week slices representing spring, summer, fall, and winter for low-data scenarios.
+	\end{itemize}
+
+	\subsection{Anomaly Taxonomy and Labeling}
+
+	Custom perturbations were injected per segment, spanning operational, control, and contextual deviations. Table~\ref{tab:anomaly-taxonomy} summarizes the categories applied to the main meter and selected subsystems.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.92\textwidth]{images/anomaly-dataset-examples.png}
+	\caption{Representative sub-meter excerpts from the curated benchmark slices (fall spike, spring pattern shift, summer off-hours). Red markers indicate anomaly windows where the targeted device deviates from its baseline regime.}
+	\label{fig:anomaly-dataset-examples}
+\end{figure}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Synthetic anomaly taxonomy used in the BOPTEST benchmark datasets.}
+		\label{tab:anomaly-taxonomy}
+		\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+			\hline
+				extbf{Category} & \textbf{Description} \\
+			\hline
+			Device failures & Full outage (0 kWh) and degraded operation (\(50\%\) load) for selected meters. \\
+			Stuck states & Forced high-load and low-load plateaus irrespective of schedule. \\
+			Drift profiles & Exponential and linear drifts (10\%--60\%) applied over multi-day horizons. \\
+			Extended spikes & Sustained spikes at 10\%, 25\%, 50\%, and 100\% above baseline for varying durations. \\
+			Contextual/off-hours & Night or weekend consumption persisting at abnormal levels (high/low variants). \\
+			Pattern shifts & Phase shifts of daily load shapes by 30 minutes up to 4 hours. \\
+			Point anomalies & Single-timestep spikes from 10\% to 500\% of nominal demand. \\
+			\hline
+		\end{tabular}
+	\end{table}
+
+	Each injected anomaly is labeled with its category, onset, and magnitude, enabling fine-grained evaluation of detection latency, duration coverage, and financial attribution across the benchmark suites described above.
+
  
