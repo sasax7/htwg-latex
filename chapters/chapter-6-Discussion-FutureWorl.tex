@@ -1,0 +1,40 @@
+\chapter{Discussion and Future Work}
+\label{chap:discussion-future}
+
+The evaluation of the integrated system demonstrates the efficacy of combining stochastic forecasting with hierarchical root-cause analysis. However, the transition from a synthetic benchmark to diverse industrial environments reveals specific areas where the methodology can be refined to enhance diagnostic depth and modelling flexibility.
+
+\section{Critical Reflection on System Design}
+
+The current implementation of root-cause analysis (RCA)\textemdash the process of identifying the origin of a fault\textemdash relies primarily on the statistical attribution of financial impact across sub-meters. While this identifies \emph{where} an anomaly occurs, it does not fully explain \emph{why} the deviation was triggered within the control layer. Future iterations could enhance the RCA by integrating the operational states of high-consumption assets. By analysing control signals, such as valve positions or modulation frequencies, the system could verify whether a consumption spike is a legitimate response to a manual override or a failure of the underlying control logic.
+
+Furthermore, the feature set utilized in the \texttt{ADPipeline} is currently restricted to meteorological data and temporal indicators. Empirical evidence from the BOPTEST correlation analysis (see Figure~\ref{fig:feature-importance}) indicates that occupancy\textemdash represented by people count\textemdash is one of the most significant drivers of energy consumption. The absence of real-time occupancy telemetry in many tenant buildings represents a significant information gap. The system should be expanded to allow tenants to select specific attributes, such as CO$_2$ levels or access-control logs, to be included as exogenous features for customized detection models.
+
+\section{Data Integrity and User-Centric Baseline Selection}
+
+The current modelling approach assumes that all historical data preceding the activation of an anomaly-detection licence represents a healthy operational state. This assumption is often violated in real-world facilities where persistent faults may already be present. To address this, an interface for manual baseline configuration is proposed. This would enable facility managers to designate specific historical intervals as \emph{gold-standard} periods.
+
+Implementing this with the current Chronos-2 architecture presents a technical challenge, as the model requires a continuous temporal sequence immediately preceding the target timestamp. To utilize a non-contiguous healthy baseline from a previous year, the system would require a mechanism to translate and align historical timestamps to the current prediction window.
+
+Additionally, the reliability of the RCA is heavily dependent on the metering density of the building. In facilities with low sub-metering granularity, the system's ability to attribute faults remains limited to large-scale aggregates, highlighting the need for further evaluation on diverse, real-world datasets.
+
+\section{Future Architecture: The Universal Energy Feature Forecaster}
+
+The utilization of Chronos-2 in the current system represents an adaptation of a sequential foundation model for feature-based anomaly detection. While effective, this approach does not fully leverage the model's internal probability distributions for anomaly scoring in the same way a mixture-density network (MDN) does. A significant limitation is the reliance on fixed quantile bounds (for example, $q_{0.99}$), which simplifies the complex multimodal output of the transformer into a binary threshold.
+
+\subsection{In-Context Zero-Shot Modelling}
+
+A proposed architectural shift involves the development of a specialized foundation model designed as a universal energy feature forecaster. Instead of predicting a sequence based on recent history, this model would utilize in-context learning (ICL). In this paradigm, the model is provided with a set of baseline features and their corresponding target values as context, regardless of their temporal proximity to the current timestamp. This would allow the model to ingest healthy baseline data from a different season or a different year as a direct reference for the current prediction task.
+
+\subsection{Probabilistic Anomaly Scoring}
+
+The proposed model would retain the token-based probability output of the Chronos architecture but utilize the full distribution to calculate an anomaly score. By computing the negative log-likelihood (NLL) of an observed value across all predicted tokens, the system would achieve a sensitivity comparable to the MDN while maintaining the zero-shot generalization of a foundation model.
+
+This architecture would also enable comparative baseline analysis without retraining. For example, an operator could predict March consumption using both January and February baselines to quantify the resulting energy savings from efficiency measures implemented in February. In doing so, the anomaly-detection system would evolve from a pure fault detector into a broader decision-support tool for evaluating building-decarbonization strategies.
+
+\section{Reflections on Energy Anomaly Benchmarking}
+
+The experimental evaluation conducted within this research represents a foundational step towards a standardized benchmarking framework for energy-specific anomaly detection. It highlights the necessity for datasets that prioritize \textbf{contextual anomalies}\textemdash deviations that are only anomalous relative to external variables such as weather or occupancy\textemdash over simple point deviations. By utilizing the \textbf{volume under the surface of the precision-recall curve (VUS-PR)}, the benchmark addresses the inherent temporal characteristics of industrial energy faults, which frequently persist over extended durations.
+
+However, the current benchmarking methodology reveals several opportunities for improvement. While the results provide a comparative overview, the absence of exhaustive \textbf{hyperparameter tuning}\textemdash the process of optimizing the internal parameters of a model to achieve peak performance\textemdash for many baseline methods potentially masks their true detection capabilities. Furthermore, the protocol for comparing zero-shot \textbf{foundation models}\textemdash large-scale models pre-trained on diverse datasets to perform tasks without site-specific training\textemdash against traditional supervised methods requires further formalization.
+
+Future benchmarking efforts must ensure that all models are evaluated under optimal configurations to support a scientifically robust comparison. Such a refined framework will serve as a vital tool for the objective validation of emerging architectures in the building-automation sector.

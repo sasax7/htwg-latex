@@ -279,7 +279,7 @@
       \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{abstract}{Environmental pollution and energy saving are particularly relevant issues nowadays due to their direct consequences on our daily life and on the future of our planet. Possible countermeasures to reduce pollution and to facilitate energy saving include detecting faults and abnormal usage patterns in the electricity consumption of buildings, which account for 38% of global energy use. In this paper, we focus on data-driven anomaly detection and experimentally compare several topologies of deep autoencoders for detecting anomalies in the electrical energy consumption of buildings. We consider both plain and variational autoencoders, with different mixtures of recurrent, convolutional, and attention layers, and two different anomaly scores, based on reconstruction error and on reconstruction probability. Experiments are performed on two datasets collected from real office buildings. Results suggest that autoencoders represent a valuable tool for detecting anomalies in the electricity consumption of buildings. However, depending on the regularity and noise of the data, the choice of the right autoencoder topology and anomaly score can become important, as some combinations may be better suited than others. Results also show that integrating attention in autoencoders requires particular care due to the bypassing phenomenon. In response, we propose a novel self-attention mechanism, which is less susceptible to bypassing.}
+      \field{abstract}{Environmental pollution and energy saving are particularly relevant issues nowadays due to their direct consequences on our daily life and on the future of our planet. Possible countermeasures to reduce pollution and to facilitate energy saving include detecting faults and abnormal usage patterns in the electricity consumption of buildings, which account for 38\% of global energy use. In this paper, we focus on data-driven anomaly detection and experimentally compare several topologies of deep autoencoders for detecting anomalies in the electrical energy consumption of buildings. We consider both plain and variational autoencoders, with different mixtures of recurrent, convolutional, and attention layers, and two different anomaly scores, based on reconstruction error and on reconstruction probability. Experiments are performed on two datasets collected from real office buildings. Results suggest that autoencoders represent a valuable tool for detecting anomalies in the electricity consumption of buildings. However, depending on the regularity and noise of the data, the choice of the right autoencoder topology and anomaly score can become important, as some combinations may be better suited than others. Results also show that integrating attention in autoencoders requires particular care due to the bypassing phenomenon. In response, we propose a novel self-attention mechanism, which is less susceptible to bypassing.}
       \field{issn}{0378-7788}
       \field{journaltitle}{Energy and Buildings}
       \field{title}{An empirical evaluation of deep autoencoders for anomaly detection in the electricity consumption of buildings}
@@ -298,6 +298,76 @@
       \endverb
       \keyw{Anomaly detection,Electricity consumption,Deep autoencoders,Self-attention}
     \endentry
+    \entry{ElionaAssetModelingTemplates}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
+           family={{Eliona IoT Platform}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{bibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorbibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{extraname}{1}
+      \field{labelalpha}{Eli25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{extraalpha}{1}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Online documentation}
+      \field{title}{Asset Modeling -- Create Templates}
+      \field{urlday}{23}
+      \field{urlmonth}{12}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/assets/asset-modeling-create-templates
+      \endverb
+      \verb{url}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/assets/asset-modeling-create-templates
+      \endverb
+    \endentry
+    \entry{ElionaAssets}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
+           family={{Eliona IoT Platform}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{bibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorbibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{extraname}{2}
+      \field{labelalpha}{Eli25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{extraalpha}{2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Online documentation}
+      \field{title}{Assets}
+      \field{urlday}{23}
+      \field{urlmonth}{12}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/assets
+      \endverb
+      \verb{url}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/assets
+      \endverb
+    \endentry
     \entry{ElionaOntologies}{misc}{}{}
       \name{author}{1}{}{%
         {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
@@ -312,9 +382,11 @@
       \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
       \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
       \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{extraname}{3}
       \field{labelalpha}{Eli25}
       \field{sortinit}{2}
       \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{extraalpha}{3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{Online documentation}
@@ -329,6 +401,111 @@
       \endverb
       \verb{url}
       \verb https://doc.eliona.io/collection/eliona-english/academy/introduction-to-ontologies
+      \endverb
+    \endentry
+    \entry{ElionaRuleChains}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
+           family={{Eliona IoT Platform}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{bibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorbibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{extraname}{4}
+      \field{labelalpha}{Eli25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{extraalpha}{4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Online documentation}
+      \field{title}{Rule Chains}
+      \field{urlday}{23}
+      \field{urlmonth}{12}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/alarms-rules-and-escalations/rule-chains
+      \endverb
+      \verb{url}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/alarms-rules-and-escalations/rule-chains
+      \endverb
+    \endentry
+    \entry{ElionaRules}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
+           family={{Eliona IoT Platform}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{bibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorbibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{extraname}{5}
+      \field{labelalpha}{Eli25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{extraalpha}{5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Online documentation}
+      \field{title}{Rules}
+      \field{urlday}{23}
+      \field{urlmonth}{12}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/alarms-rules-and-escalations/rules
+      \endverb
+      \verb{url}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/alarms-rules-and-escalations/rules
+      \endverb
+    \endentry
+    \entry{ElionaStructuringAssets}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=28b9c73fb5ee4dc9e938193fa4d4e30e}{%
+           family={{Eliona IoT Platform}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{fullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{bibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorbibnamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authornamehash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhash}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \strng{authorfullhashraw}{28b9c73fb5ee4dc9e938193fa4d4e30e}
+      \field{extraname}{6}
+      \field{labelalpha}{Eli25}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{extraalpha}{6}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Online documentation}
+      \field{title}{Structuring Assets}
+      \field{urlday}{23}
+      \field{urlmonth}{12}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/assets/structuring-assets
+      \endverb
+      \verb{url}
+      \verb https://doc.eliona.io/collection/eliona-english/documentation/assets/structuring-assets
       \endverb
     \endentry
     \entry{hela2025tsfm-energy-ad}{inproceedings}{}{}
@@ -432,8 +609,8 @@
       \keyw{anomaly detection,Autoencoder,CNN,dataset,deep learning,GAN,GNN,Internet of Things,LSTM,network security}
     \endentry
   \enddatalist
+  \missing{BOPTEST}
   \missing{Boniol2023NewTrends}
-  \missing{SomeSmartMeterPaper2023}
 \endrefsection
 \endinput
 

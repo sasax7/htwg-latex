@@ -1,0 +1,311 @@
+\chapter{Implementation}
+\label{chap:implementation}
+
+The previous chapter established the methodological framework and the operational requirements for the anomaly detection system. This chapter details the technical realization of these concepts, focusing on the software stack, the integration into the Azure ecosystem, and the internal orchestration logic of the Scala microservice and the Python analytics endpoint.
+
+\section{Integrated System Architecture and Technology Stack}
+
+The implementation utilizes a polyglot approach to leverage the specific strengths of different programming paradigms. While the orchestration and data processing are handled by a Scala microservice to ensure high-performance parallelism, the predictive modeling is realized through a Python endpoint optimized for machine learning.
+
+\subsection{Deployment and Cluster Integration}
+
+The system is designed as a modular Docker container that operates within the same Azure Kubernetes Services (AKS) cluster as the core Eliona microservices. This co-location ensures low-latency communication between the detection logic and the primary data storage. The architecture remains environment-agnostic; for on-premise deployments, the entire stack, including the analytics endpoint, can be executed locally as a suite of interconnected containers.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/first-high-level-architecture.jpg}
+	\caption{High-level deployment of the anomaly detection microservice and Python analytics endpoint within the Eliona and Azure ecosystems.}
+	\label{fig:implementation-architecture}
+\end{figure}
+
+\subsection{Data Orchestration and Persistence}
+
+The microservice establishes a closed-loop data pipeline with the Eliona backend:
+
+\begin{description}
+	\item[Ingestion] Telemetry data is retrieved directly from the centralized PostgreSQL/TimescaleDB instance.
+	\item[Analytics loop] After performing data preparation, the microservice transmits multivariate tensors to the method endpoint.
+	\item[Synthesis and storage] If the returned predictions indicate a deviation, the service creates an anomaly object. These objects are persisted in the database, where they become accessible to the Eliona frontend via API~V1 for visualization and reporting.
+\end{description}
+
+\section{Python Analytics Endpoint: Chronos-2 Integration}
+
+The analytical core of the system is realized as a specialized Python service. This choice is motivated by the maturity of the Python ecosystem regarding transformer-based time-series models and the availability of managed deployment infrastructures.
+
+\subsection{Predictive Logic and Model Hosting}
+
+The endpoint hosts the Chronos-2 model, which is utilized in a batch prediction mode to process multiple time series simultaneously. It receives JSON payloads containing historical context and exogenous covariates, returning probabilistic forecasts and specific quantiles that are used to establish the normative operational band.
+
+\subsection{Managed Online Endpoints in Azure ML}
+
+For cloud-based production environments, the service is deployed as an Azure Machine Learning (AML) managed online endpoint. This infrastructure provides several quantifiable advantages:
+
+\begin{description}
+	\item[Automated scaling] The platform manages horizontal scaling and load balancing to handle variable request volumes from the Scala backend.
+	\item[MLOps integration] Azure ML provides a robust environment for creating training pipelines and registering versioned models, ensuring the non-stationary adaptation requirement is fulfilled.
+	\item[Flexibility] Despite being managed in the cloud, the service is fully containerized, allowing for a seamless transition to local Docker environments when on-premise capability is required.
+\end{description}
+
+\section{Scala Microservice: Multi-Tenant Orchestration}
+
+The orchestration of the anomaly detection system is managed by an autonomous Scala microservice, which serves as the primary computational engine for data retrieval, transformation, and multi-tenant isolation. While the predictive logic is delegated to a Python-based endpoint, the Scala service functions as the ``brain'' of the architecture, coordinating complex asynchronous I/O operations and ensuring thread-safe execution across concurrent processing loops. The selection of Scala is motivated by the requirement for high-performance parallelism and strong static typing, which facilitates the management of the intricate building ontology and multivariate telemetry tensors. By executing on the Java Virtual Machine (JVM), the service achieves industrial-grade scalability and resilience, allowing the system to process data from thousands of assets simultaneously without the execution bottlenecks typical of interpreted languages.
+
+\subsection{Multi-Tenant Lifecycle Management}
+
+The implementation ensures strict separation between different organizations through a dedicated multi-tenant management layer. Multi-tenancy is defined here as an architectural paradigm where a single instance of the software serves multiple distinct customers, known as tenants, while maintaining logical isolation of their data and configurations.
+
+The lifecycle of these tenants is managed by the \texttt{TenantService}, which identifies licensed entities via the \texttt{DatabaseTenantRepository}. To maintain synchronization with the current platform state, the \texttt{TenantRegistry} performs a reconciliation sweep every 15 minutes. During this cycle, the registry identifies new licenses to instantiate corresponding \texttt{TenantWorkerLoop} instances, restarts workers that have encountered critical failures, and terminates processes for tenants whose licenses have expired or were removed.
+
+Each tenant is assigned an independent \texttt{ADWorker}, ensuring that processing tasks for one organization do not interfere with the resource allocation of another. This isolation is further reinforced at the database level by a central registry that maps tenant identifiers to specific data scopes, ensuring that the \texttt{AttributeDataProcessor} only retrieves telemetry and hierarchical metadata belonging to the respective tenant. The registration of shutdown hooks ensures that all active workers, schedulers, and database connection pools are closed gracefully upon service termination, preventing data corruption or leaked resources.
+
+\section{Data Acquisition and Processing Pipeline}
+
+The transformation of raw building telemetry into structured inputs for the Chronos-2 model requires a multi-stage pipeline. This process ensures that the detection logic focuses on relevant energy signals while maintaining high data quality through automated cleaning and contextual enrichment.
+
+\subsection{Attribute Filtering and Hierarchical Selection}
+
+The system utilizes the Eliona attribute metadata to identify relevant telemetry points. To focus on electrical energy consumption, the \texttt{AttributeDataProcessor} queries all attributes assigned to the ``Energy'' type with \emph{kWh} as the defined unit. To optimize computational resources and ensure operational relevance, the system applies two primary filters:
+
+\begin{description}
+	\item[Relevance thresholding] The processor analyzes the historical peak daily consumption for each meter. If the highest recorded energy consumption over a 24-hour period represents a financial value lower than a configurable threshold (standardized at \$1.00), the attribute is excluded from both the detection pipeline and the Root Cause Analysis (RCA).
+	\item[Depth-limited detection] While all eligible attributes are organized into a tree structure based on their physical location, anomaly detection is strictly performed on the first two layers (typically the main meter and floor meters). The remaining descendant nodes in the hierarchy are utilized exclusively for diagnostic purposes during the RCA phase.
+\end{description}
+
+\subsection{Contextual Enrichment: Site-Localized Weather}
+
+The system integrates exogenous environmental data to capture the impact of external drivers on building energy demand. Each meter tree is associated with a specific site, which provides precise geographical coordinates (latitude and longitude). The \texttt{WeatherProvider} utilizes these coordinates to fetch localized weather telemetry from the Open-Meteo API. This data is persisted in the database to serve as covariates for the \texttt{ADPipeline}, ensuring that consumption spikes caused by extreme weather are not incorrectly flagged as technical faults.
+
+\subsection{Data Cleaning and Gap-Resilience Logic}
+
+The microservice retrieves aggregated telemetry from the database for five distinct timeframes: 15-minute, 1-hour, 4-hour, 1-day, and 1-week buckets. To ensure data quality resilience, the following preparation steps are applied to the raw signal:
+
+\begin{description}
+	\item[Gap filling and spike redistribution] Missing data buckets are filled with zero values. If a transmission gap is followed by a recovery spike\textemdash a common occurrence in IoT gateways\textemdash the accumulated energy value is distributed equally across the duration of the preceding gap to prevent false-positive alerts.
+	\item[Integrity flagging] For every data point, the system generates a binary feature that is set to 1 if a gap was present and 0 if the data was received normally. This provides the model with explicit context regarding signal reliability.
+	\item[Recursive imputation] To prevent known anomalies from ``poisoning'' the sliding input window of the Chronos model, any value previously identified as anomalous is replaced with its corresponding predicted median value before being used for subsequent forecasts.
+\end{description}
+
+\subsection{Reactive Data Fetching}
+
+The pipeline operates on a reactive schedule to synchronize with the database's aggregation cycles. Every 15 minutes, a new fetch operation is triggered; however, data is only retrieved for completed aggregation buckets. For example, 15-minute buckets are refreshed every quarter-hour, whereas 1-day buckets are only updated every 24 hours once the full daily period has concluded. This ensures that the model always operates on finalized, consistent telemetry.
+
+\section{Stochastic Inference and Anomaly Quantification}
+
+The core of the detection logic resides in how data is transmitted to the Chronos-2 endpoint and how the resulting stochastic forecasts are interpreted to identify and quantify anomalies.
+
+\subsection{Feature-Driven Prediction Strategy}
+
+To fulfill the methodological requirement of reducing dependence on autoregressive lags, the system utilizes a specific inference strategy. As established in Section~\ref{sec:critique-sequential}, standard sequential models often ``adapt'' to anomalies because the anomalous value becomes a feature for the next prediction. To mitigate this, the microservice does not send the actual value of the timestamp currently being evaluated for an anomaly.
+
+Instead, the service transmits a historical buffer along with contextual features (weather, occupancy, and temporal indicators) and requests a prediction horizon that extends up to the point of interest. By providing the model with ``future'' known covariates while withholding the actual consumption at the target timestamp, the model is forced to rely on the established contextual relationships rather than the most recent (potentially anomalous) observation.
+
+\subsection{Batch Processing and Quantile Requests}
+
+The \texttt{ADPipeline} batches requests for multiple attributes and timeframes into single JSON payloads to maximize the throughput of the Azure ML endpoint. For each attribute, the service requests specific quantiles from the Chronos-2 model:
+
+\begin{itemize}
+	\item \textbf{99th percentile} ($q_{0.99}$): used as the high-sensitivity threshold for detecting extreme deviations.
+	\item \textbf{68th percentile} ($q_{0.68}$): used as the normative baseline for financial impact calculations in high-consumption scenarios.
+	\item \textbf{50th percentile} ($q_{0.50}$): the median, serving as the central tendency of the prediction distribution.
+\end{itemize}
+
+\subsection{Detection Logic and Financial Quantification}
+
+An anomaly is formally triggered if the actual value $x_t$ falls outside an extreme prediction interval defined by the 99th percentile:
+
+\begin{equation}
+x_t > q_{0.99, \text{upper}} \quad \text{or} \quad x_t < q_{0.01, \text{lower}}.
+\end{equation}
+
+Once an anomaly is confirmed, the system calculates the financial impact. A critical challenge in multi-modal building data is that the mean often represents an improbable ``middle ground'' between an \emph{On} and \emph{Off} state. To prevent inflated impact values, the system calculates the residual distance from the 68th percentile rather than from the mean.
+
+\begin{description}
+	\item[Negative impact (waste)] If the consumption is higher than the upper bound, the wasted energy is quantified as the distance to the $q_{0.68}$ quantile. This ensures that if the normal behaviour at that time could have been a high-load state, the anomaly is measured against that high-state boundary rather than a lower global average.
+	\item[Positive impact (savings)] If the consumption is lower than the lower bound, the savings are measured relative to the corresponding lower quantile.
+\end{description}
+
+These residuals are then multiplied by the tenant-specific \texttt{energyCostPerKwh} to generate a signed monetary value, which is persisted as part of the anomaly object. To avoid cluttering the system with events that correspond to only a few cents of effect, any candidate anomaly whose absolute financial impact falls below a configurable minimum threshold is discarded and not promoted to a persisted anomaly object.
+
+\section{Hierarchical Root Cause Analysis (RCA)}
+
+When an anomaly is confirmed on a high-level meter, such as the main meter, the \texttt{ADWorker} initiates a targeted diagnostic sweep of the descendant hierarchy. The service identifies all sub-meters within the functional tree and retrieves their corresponding time-series trends.
+
+\subsection{Diagnostic Attribution}
+
+These sub-meter trends are processed through the \texttt{ADPipeline} in a specialized diagnostic mode. The system calculates the individual financial impact for each sub-component to determine their relative contribution to the primary anomaly. The resulting diagnostic data includes:
+
+\begin{description}
+	\item[Asset-specific impact] A breakdown of financial loss attributed to individual assets (for example, ``Light 1: -\$3.00'', ``HVAC Pump: +\$1.00'').
+	\item[Asset type aggregation] Contributions grouped by category to identify systemic issues, such as a specific percentage of the total impact being caused by ``Lighting'' or ``Plug Loads''.
+\end{description}
+
+\subsection{Localization and Weather Context}
+
+The diagnostic summary is enriched with localized metadata and environmental context. The system utilizes the \texttt{WeatherProvider} to retrieve the meteorological conditions at the exact time of the event, such as the outside temperature and sky coverage. This information is formatted into a standardized diagnostic string, for example: ``Unusual high energy consumption on Monday at 04:30. Outside temperature 12\,\textdegree{}C, Weather: Clear Sky.''
+
+\section{Temporal Collapse and Persistence}
+
+The system monitors telemetry across five distinct timeframes (from 15-minute to 1-week buckets), which frequently results in overlapping detection events. To prevent redundant alerting and maintain data integrity, the \texttt{ADPipeline} implements a temporal collapse logic:
+
+\begin{description}
+	\item[Hierarchical merging] Anomalies detected on shorter timeframes are absorbed into higher-timeframe events as they mature. For example, four individual 15-minute anomalies are deleted once a corresponding 1-hour anomaly is confirmed, with their diagnostic data and timestamps merged into the 1-hour object.
+	\item[Impact optimization] To ensure the most realistic representation of waste, the system retains the highest financial impact value between the aggregated lower-timeframe residuals and the single higher-timeframe calculation.
+\end{description}
+
+\section{AI Synthesis and Recommended Actions}
+
+For anomalies exceeding a defined priority or financial threshold, the diagnostic payload is transmitted to the \texttt{AnomalyExplainer}. This component utilizes a Large Language Model (LLM) to synthesize the raw diagnostic data into operational insights.
+
+\subsection{Scenario A: Behavioral Fault (Lighting)}
+
+If the root cause analysis identifies that approximately 90\% of a nighttime anomaly was caused by lighting assets, the LLM generates a targeted explanation:
+
+\begin{quote}
+Possible explanation: Technical staff or occupants likely left the lighting systems active during non-operational hours. Recommended action: Manually deactivate the identified lighting circuits and implement an automated ``All-Off'' logic using the platform's rule chains.
+\end{quote}
+
+\subsection{Scenario B: Technical Fault or Misuse (Plug Loads)}
+
+In cases where a plug-load asset exhibits an extreme, sustained spike during a weekend, the AI identifies potential electricity theft or equipment malfunction:
+
+\begin{quote}
+Possible explanation: The sustained consumption on a specific plug load suggests the unauthorized use of high-power external devices or potential electricity theft. Recommended action: Inspect the physical location of the asset for unauthorized hardware and configure a real-time rule-engine alert for future weekend consumption spikes on this circuit.
+\end{quote}
+
+The finalized anomaly object, including the diagnostic summary, financial impact, and AI-generated guidance, is persisted in the central anomalies table for frontend visualization.
+
+\section{Tenant-Specific Configuration and Parameterization}
+
+To ensure the system remains adaptable to different operational requirements and economic conditions, the implementation includes a dedicated configuration layer for tenant-specific parameters. These settings are persisted in a centralized \texttt{anomaly\_config} table and are refreshed dynamically by the \texttt{TenantRegistry} to govern the behavior of the \texttt{ADWorker} loops.
+
+The configuration table allows for granular control over the detection sensitivity and the financial logic applied to each organization. This structure ensures that the system can be tailored to the specific risk tolerance and cost structures of diverse tenants. Key parameters include:
+
+\begin{description}
+	\item[Sensitivity ($q$)] This parameter defines the quantile at which an anomaly is triggered. While the standard value is $0.99$, a tenant may adjust this to increase or decrease the width of the normative band.
+	\item[Check interval (minutes)] This setting determines the frequency of the \texttt{TenantWorkerLoop} execution. While the default is 15 minutes, a tenant may increase this interval if they are primarily interested in higher-level temporal aggregations, such as daily reports, rather than real-time quarter-hourly monitoring.
+	\item[Financial impact threshold] This parameter governs the \texttt{AttributeDataProcessor} filtering logic. If set to a value such as 1.00, any meter whose peak daily consumption represents less than \$1.00 in potential waste is excluded from the monitoring and RCA processes to optimize computational resources.
+	\item[Financial impact alert threshold] This value serves as a final filter for the \texttt{ADPipeline} before an event is persisted. For example, if a tenant sets this to 10.00, the system will only trigger a formal anomaly alert if the calculated financial impact exceeds \$10.00, thereby reducing alert fatigue caused by negligible deviations.
+	\item[Energy cost per kWh] Each tenant specifies their current electricity rate here. This value is the primary scalar used to convert energy residuals into the monetary impacts stored in the anomalies table.
+	\item[Audit metadata] Each configuration record includes \texttt{modified\_by} and \texttt{modified\_at} fields to maintain a traceable history of administrative changes to the detection parameters.
+\end{description}
+
+\section{Frontend Visualization and User Interaction}
+
+The results of the backend orchestration and AI-driven diagnostics are presented through a multi-tenant frontend interface. This interface acts as the visualization layer for the anomalies persisted in the database, allowing facility managers to monitor energy health and interact with detected faults. The application layer utilizes a widget-based system to display real-time telemetry alongside anomaly indicators.
+
+\subsection{The Anomalies Table Interface}
+
+The implementation introduces an anomalies list as a core functional component within the platform's alert center. This module is designed to mirror the existing alarms list to ensure a consistent user experience while providing specialized tools for energy-centric data management. The interface is extended with an ``Anomalies'' tab located adjacent to the existing ``Alarms'' section, providing a unified environment for system health monitoring.
+
+The data grid presents a structured overview of all identified deviations to facilitate rapid triage and operational decision-making. Each entry in the table displays critical diagnostic metrics, including the severity, the source asset, the financial impact, and the comparison between predicted and actual values. Columns for timeframes and tags enable the filtering and sorting of anomalies based on specific operational scopes.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/anomaly-list.jpg}
+	\caption{Anomalies list interface in the Eliona frontend, showing key diagnostic metrics, financial impact, and filtering options.}
+	\label{fig:anomaly-list}
+\end{figure}
+
+\subsection{User Feedback and Status Management}
+
+A central feature of the frontend is the capacity for human operators to validate the findings of the autonomous detection system. This human-in-the-loop interaction, in which human feedback is integrated into an automated process, is required to maintain model accuracy and long-term system trust.
+
+Operators utilize a dynamic status control to select one or multiple anomalies and assign a status of ``Not set'', ``Confirmed'', or ``False positive''. A false positive is defined as a result that indicates a condition is present when it is not. The ``Add comment'' function allows facility managers to record observations or remediation steps directly within the anomaly record, creating a traceable history for maintenance teams.
+
+Marking an anomaly as a false positive triggers a data-cleansing process. This information is utilized to exclude the flagged period from future training cycles. As a result, non-anomalous events, such as authorized maintenance or unique operational shifts, are correctly classified as normal behaviour in future baselines.
+
+\subsection{Integrated Anomaly Analytics and Visualization}
+
+The implementation extends the platform's analytical capabilities by introducing a specialized anomaly-detection analytic type. This component integrates directly into the existing insight analytics framework, allowing users to visualize stochastic detection results across dashboards and automated reports. It is designed to provide a cohesive visual bridge between raw telemetry and the probabilistic outputs of the Chronos-2 model.
+
+\subsubsection*{Dynamic Chart Overlays}
+
+When the anomaly-detection analytic is active, the platform provides two distinct layers of visual context to the consumption charts. First, the system generates a red background overlay for the entire asset profile whenever a deviation is identified. This highlight persists across all associated attributes of the asset, regardless of the selected aggregation level, enabling operators to observe how a failure in one sub-meter propagates through the energy consumption of the larger system.
+
+Second, for specific energy meters, the interface provides a detailed granular view when the timeframe and aggregation type match the detection parameters. It displays red dots to mark individual anomalous data points alongside a green expected range. This green band represents the stochastic normative profile established by the model's quantiles, allowing users to visually quantify the magnitude of the deviation relative to the predicted operational baseline.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/anomalies-in-analytics.jpg}
+	\caption{Integrated anomaly-detection analytic within the insight analytics framework, highlighting anomalous periods on the consumption charts.}
+	\label{fig:anomalies-in-analytics}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/anomaly-analytic-in-dashboard.jpg}
+	\caption{Anomaly-detection analytic embedded in a customizable dashboard, combining stochastic overlays with other operational widgets.}
+	\label{fig:anomaly-analytic-dashboard}
+\end{figure}
+
+\subsubsection*{Interactive Diagnostics and Tooltips}
+
+To facilitate immediate root-cause identification, the system includes interactive tooltips that appear upon hovering over an anomalous data point. These tooltips provide a concentrated summary of the anomaly object, including:
+
+\begin{description}
+	\item[Quantitative metrics] Real-time data regarding the financial impact, the predicted versus actual consumption, and the severity level.
+	\item[AI-synthesized context] The AI explanation regarding the likely origin of the fault (for example, ``extended equipment runtime or a control issue'') and the corresponding recommended action (for example, ``review the affected equipment settings and operating schedule'').
+	\item[Validation status] The current validity status (for example, ``Confirmed''), which reflects the user feedback provided in the anomalies list.
+\end{description}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/Tooltip.png}
+	\caption{Interactive tooltip attached to an anomalous data point, summarizing financial impact, AI explanation, and validation status.}
+	\label{fig:anomaly-tooltip}
+\end{figure}
+
+Because this functionality is implemented as a standard analytic type, it is fully compatible with the platform's existing reporting engine and customizable dashboards. This ensures that the detection results are not isolated within a separate module but are integrated into the daily operational workflows of the facility management team.
+
+\subsection{Anomaly Detail View and Operational Synthesis}
+
+The anomaly detail view provides a specialized environment for the deep-dive analysis of individual detection events. Users access this page by selecting the navigational arrow corresponding to a specific entry in the anomalies list. This view consolidates all relevant quantitative and qualitative data into a single operational summary, facilitating a transition from detection to remediation.
+
+The detail page is structured to provide immediate clarity regarding the severity and context of the fault. The header section displays the core metadata, including the financial impact, the severity level, and the validation status. A dedicated validation panel allows the user to update the status to ``Confirmed'' or ``False'' and provides a text area for recording technical comments or observations.
+
+The primary analytical component of this view is a high-resolution analytic chart. This visualization is automatically centered on the anomalous period, allowing the user to observe the consumption profile immediately before and after the identified deviation. This spatial centering provides critical temporal context, helping the operator determine whether the event was a singular spike or the onset of a sustained operational shift.
+
+The lower section of the page presents the diagnostics and AI-synthesis results. The diagnostics string summarizes the technical conditions, such as the outside temperature and weather at the time of the event, and identifies the likely contributing sub-meters. Below this, the AI explanation provides a natural-language interpretation of the data, for instance by identifying a likely ``data acquisition failure'' or ``unexpected shutdown of major loads''. The recommended actions then list specific investigative steps, such as checking metering infrastructure for outages or verifying scheduled maintenance activities.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/anomaly-details-page.jpg}
+	\caption{Anomaly detail view aggregating financial impact, validation status, analytic chart, diagnostics, and AI-synthesized recommended actions.}
+	\label{fig:anomaly-detail-view}
+\end{figure}
+
+By combining these interactive elements, the anomaly detail view transforms raw telemetry into a structured maintenance task, directly supporting the actionable-insights requirement established in the system's methodology.
+
+\subsection{Anomaly Statistics and Macro-Level Reporting}
+
+To complement the detailed, asset-specific views, the platform includes an anomaly-statistics dashboard designed for macro-level analysis and executive reporting. This interface aggregates data across entire tenants or individual sites, providing facility managers with a high-level overview of system health and financial performance over time.
+
+The scope of the data presented is controlled through a unified timeframe selector. Users can toggle between standard periods, such as the current month or the current fiscal year, which instantly recalculates all metrics on the dashboard. The primary key performance indicators (KPIs) focus on the aggregated financial impact. A prominent widget displays the total monetary value of detected energy waste or savings within the selected period, alongside a percentage-based comparison to the previous equivalent timeframe. This immediate context allows stakeholders to quickly determine if operational performance is trending positively or negatively.
+
+Beneath the top-level KPIs, the dashboard provides categorical breakdowns to identify systemic issues. A visualization of the most impact by asset type highlights which categories of equipment, such as HVAC or lighting, are contributing most significantly to financial losses. Temporal trends are visualized through an overspend-versus-saved bar chart, allowing users to visually track the effectiveness of remediation efforts over successive periods. A parallel bar chart provides a count of anomalies per asset type, distinguishing between high-frequency, low-impact events and rare, high-cost failures. For multi-site tenants, a site-aggregation list details the anomaly count and total impact for each location. Selecting a specific site in this list redirects the user to a filtered version of the statistics page dedicated solely to that location's data.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/anomalies-statistic-dashboard.png}
+	\caption{Anomaly-statistics dashboard providing macro-level KPIs, categorical breakdowns, temporal trends, and site-level aggregation for executive reporting.}
+	\label{fig:anomaly-statistics-dashboard}
+\end{figure}
+
+A critical analytical tool within this dashboard is the financial-impact heatmap, designed to reveal temporal patterns in energy waste. The configurations of its axes adapt dynamically based on the selected timeframe. For shorter periods, the x-axis represents the date and the y-axis represents the time of day. The cell colour intensity indicates the magnitude of financial impact, making it immediately apparent if specific times of day consistently experience costly anomalies. For longer timeframes, such as a full year, the heatmap aggregates data to show day of week versus time of day. This view is particularly valuable for identifying systemic operational faults, such as recurring high-impact anomalies on Monday mornings that may indicate faulty equipment start-up sequences after weekend shutdowns.
+
+\subsection{Asset-Specific Anomaly Integration}
+
+The platform's asset-detail view is expanded to include a dedicated ``Anomalies'' tab, facilitating a seamless transition between general asset monitoring and specialized anomaly investigation. This view is filtered to display only the deviations and financial impacts associated with the meters assigned to the currently selected asset.
+
+The interface provides a localized summary that includes the date of the most recent anomaly and the total financial impact accumulated by the asset's meters within the selected timeframe. A donut chart visualizes the distribution of anomaly types, while a localized ``Anomalies on chart'' widget highlights the specific timestamps where deviations occurred relative to the asset's consumption profile. An ``Anomalies history'' table lists the individual events, including their severity and financial impact, providing a direct link to the anomaly detail view for further investigation.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/anomalies-in-asset-details.jpg}
+	\caption{Asset-detail view with integrated anomalies tab, showing localized statistics, anomaly-type distribution, and historical events for the selected asset.}
+	\label{fig:anomalies-asset-details}
+\end{figure}
+
+
+
+
