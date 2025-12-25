@@ -1,42 +1,69 @@
 \chapter{Introduction}
 \label{chap:introduction}
 
-\section{Motivation}
+\section{Motivation and Economic Context}
 
 Buildings account for approximately 30\% of global final energy consumption and more than 50\% of global electricity consumption~\cite{alvsauskas2024world}. Empirical studies indicate that avoidable operational anomalies\textemdash encompassing technical faults, suboptimal control strategies, and persistent behavioural misuse\textemdash account for between 4\% and 18\% of building energy use~\cite{roth2004energy}. These inefficiencies frequently remain undetected because conventional threshold-based monitoring systems are not triggered.
 
-Non-technical losses represent a quantifiable economic burden. Electricity theft results in annual losses exceeding 6~billion~USD in the United States alone~\cite{mcdaniel2009security}, and reports from international organisations indicate that in some developing countries up to half of the distributed electricity is not billed due to theft and non-technical losses~\cite{antmann2009reducing}. Such patterns of energy misuse constitute an economically relevant class of anomalies that remain uncaptured by conventional Building Automation Systems (BAS).
+Non-technical losses represent a quantifiable economic burden. Electricity theft results in annual losses exceeding 6~billion~USD in the United States alone~\cite{mcdaniel2009security}. Furthermore, reports from the World Bank indicate that in some developing countries up to 50\% of distributed electricity is lost due to theft ~\cite{antmann2009reducing}. Such patterns of energy misuse constitute an economically relevant class of anomalies. While modern \ac{BAS} are capable of detecting deviations from nominal operation, they typically neither quantify the associated financial impact nor provide systematic root-cause attribution, thereby limiting their operational and economic usefulness.
 
-The implementation of Advanced Metering Infrastructure (AMI), which combines smart meters with communication networks, is expanding rapidly. By 2022, smart meters had been installed for approximately 77\% of households and businesses in the United States, with deployments projected to reach about 134~million devices in 2024 and 142~million in 2026~\cite{enlit2024smartmeters}. The increasing integration of digital infrastructure and sub-metering in modern building environments generates vast repositories of high-frequency telemetry. This abundance of data provides a unique opportunity to apply advanced artificial-intelligence techniques to the identification of previously undetectable deviations.
+\section{Digitalization of Buildings and Data Explosion}
 
-The emergence of time-series foundation models (TSFM), such as Chronos-2, further amplifies this opportunity. These architectures are designed to process multivariate, non-stationary, multimodal, and stochastic datasets, making it possible to detect deviations that would otherwise remain hidden within signal noise.
+The implementation of \ac{AMI}, which combines smart meters with communication networks, is expanding globally. In the United States, smart meters had been deployed for approximately 77\% of households and businesses by 2022, with the installed base projected to grow to about 134~million devices in 2024 and 142~million in 2026~\cite{enlit2024smartmeters}. The increasing integration of digital infrastructure and sub-metering in modern building environments generates vast repositories of high-frequency telemetry. This abundance of data provides a unique opportunity for the application of advanced artificial-intelligence techniques that thrive on large-scale, high-resolution multivariate data to identify previously undetectable deviations.
 
-A technical requirements analysis conducted with industry experts and stakeholders of the Eliona IoT Platform identified a primary market demand for energy management systems capable of quantifying the financial impact of detected deviations. Providing transparency regarding the monetary consequences of an anomaly allows maintenance actions to be prioritised based on quantifiable results. This thesis addresses these requirements by developing a framework that transforms raw telemetry into actionable financial metrics, thereby supporting corporate sustainability objectives and resource optimisation.
 
-\section{Problem Statement: Limitations of Current Methodologies}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{images/Global-Smart-Electricity-Meter-Adoption-2024-by-Region-vweb.png}
+	\caption{Global smart electricity meter adoption by region in 2024, illustrating the varying levels of AMI penetration across markets~\cite{iotanalytics2024smartmeters}.}
+	\label{fig:global-smart-meter-adoption}
+\end{figure}
 
-While the field of time-series anomaly detection (TSAD) has seen an influx of deep-learning and foundation models, their application to building-energy telemetry remains problematic. Standard academic benchmarks, such as TSB-AD, are often compromised by systemic flaws, including mislabelling and an unrealistic ratio of anomalies to normal data.
+\section{Why Current Building Automation Systems Fail}
 
-Furthermore, many state-of-the-art models suffer from the adaptation paradox. In autoregressive sequential forecasting, the model incorporates the most recent data points\textemdash including anomalous ones\textemdash into its internal state. Consequently, the model ``learns'' the anomaly as a new normal state within a few timestamps, causing the anomaly score to return to zero while the fault is still ongoing. This behaviour renders the quantification of the total energy waste impossible. Additionally, the multimodal and non-stationary nature of energy data, where normal behaviour shifts according to weather and occupancy, causes traditional Gaussian models to generate excessive false positives.
+Most deployed Building Automation Systems (BAS) rely on static rule-based logic and univariate statistical thresholds applied to individual sensor streams. Such approaches are structurally incapable of capturing the multivariate, context-dependent nature of building-energy behaviour and are therefore unable to distinguish between legitimate operational regime changes and true anomalous states.
 
-\section{State of the Art and Research Gaps}
+More recent data-driven and machine-learning-based detection methods exhibit fundamental limitations. Many approaches operate on deterministic point predictions that fail to represent the stochastic, multimodal, and non-stationary characteristics of building-energy time series. As a result, these models impose context-agnostic deviation boundaries that treat identical absolute residuals as equally anomalous across fundamentally different operational regimes, leading to structurally incorrect anomaly semantics.
 
-Current research typically terminates at the detection phase, providing a binary label or a raw anomaly score. A significant functional gap exists in the automated translation of these scores into economic metrics and the identification of the root cause. In complex building environments with hundreds of sub-meters, an isolated alert on a main meter provides insufficient information for technical personnel to locate the specific failure.
+Sequential forecasting-based detectors further suffer from two critical failure modes when applied to sustained anomalies: (i) error propagation, where anomalous values corrupt the sliding input window and destabilize future predictions, and (ii) rapid baseline adaptation, where models quickly absorb anomalous states as normal operation, causing long-duration anomalies to disappear from the anomaly score signal :contentReference[oaicite:1]{index=1}. These effects undermine both detection reliability and financial loss quantification.
 
-Existing frameworks also lack integration with standardized validation protocols. The International Performance Measurement and Verification Protocol (IPMVP) provides a globally recognized methodology for quantifying energy savings by comparing actual consumption against a modelled baseline. There is a technical opportunity to utilize prediction-based anomaly-detection models as universal feature forecasters that support both real-time monitoring and long-term IPMVP-compliant baseline comparisons.
+Furthermore, the majority of published anomaly-detection benchmarks rely on inadequately annotated datasets, implicit anomaly assumptions, and global point-anomaly definitions that can be captured by trivial threshold rules but fail to represent contextual and multivariate operational anomalies. These limitations significantly reduce the transferability of reported performance to real-world building operation.
 
-\section{Objectives and Contributions}
+Finally, existing systems rarely provide automated root-cause attribution or translate detected deviations into quantifiable financial impact, thereby limiting their practical value for operational decision-making and maintenance prioritization.
 
-The objective of this thesis is to develop and evaluate an integrated system that resolves these architectural and functional deficiencies. The primary contributions include:
+\section{Emergence of Foundation Models for Time Series}
+
+The emergence of \ac{TSFM}, such as Chronos-2~\cite{ansari2025chronos}, marks a new paradigm in building-energy analytics. These models are designed to process multivariate, non-stationary, and stochastic data and provide probabilistic output distributions instead of single-value predictions. This enables the construction of normative operational bands that capture multimodal building behaviour and allow contextual deviations to be distinguished from normal variability.
+
+A key advantage of foundation models is their zero-shot generalization capability. In contrast to asset-specific forecasting models, TSFMs do not require per-meter training or frequent retraining. Multivariate building telemetry can be provided directly as contextual input, while optional fine-tuning can be performed jointly across entire building portfolios. This makes foundation models particularly well suited to the inherently non-stationary nature of building-energy data and enables scalable deployment across large building estates.
+
+\section{System Context and Industrial Relevance}
+
+This research is conducted in the context of the Eliona IoT Building Management Platform (see Section~\ref{sec:eliona-system-context}), a production-grade multi-tenant system deployed in commercial and industrial building portfolios worldwide. Eliona integrates heterogeneous building automation systems, smart meters, and environmental sensors into a unified telemetry and analytics layer.
+
+The anomaly-detection framework developed in this thesis is not a laboratory prototype, but a fully integrated subsystem within Eliona’s operational architecture. It processes live building telemetry, performs stochastic anomaly detection, quantifies financial impact, localizes probable root causes, and exposes actionable insights through a production-ready frontend used by facility managers and energy operators.
+
+This real-world deployment context defines both the functional requirements and the architectural constraints of the proposed methodology, including scalability, robustness to missing data, non-stationary baselines, explainability, and economic interpretability.
+
+\section{Problem Scope and Research Contributions}
+
+This thesis addresses the problem of detecting, economically quantifying, and diagnostically localizing contextual anomalies in multivariate building-energy time series within large-scale, non-stationary operational environments.
+
+In contrast to traditional threshold-based and deterministic forecasting approaches, this work formulates anomaly detection as a stochastic, multivariate, context-dependent modeling problem. The objective is the design and implementation of an integrated, production-ready anomaly intelligence system that not only detects deviations, but also explains their technical origin, quantifies their economic impact, and derives operationally meaningful recommendations.
+
+The proposed framework models expected building-energy behaviour as a multivariate, multimodal mixture distribution, allowing deviations to be evaluated probabilistically rather than against static thresholds. This formulation explicitly accounts for non-stationary baselines caused by seasonal shifts, occupancy changes, and long-term system drift, preventing legitimate regime transitions from being misclassified as anomalies. Methodologically, the work focuses on detecting \ac{MCPA} and translating them into financially interpretable metrics.
+
+The primary contributions of this thesis are:
 
 \begin{itemize}
-	\item \textbf{Methodological critique}: An experimental analysis of error propagation in sequential models and the justification for feature-driven stochastic modelling.
-	\item \textbf{Stochastic prediction framework}: The implementation of a detection logic using Chronos-2 and mixture-density networks (MDN) to handle bimodal energy distributions and establish stable normative bands.
-	\item \textbf{Financial-impact quantification}: A mathematical approach to calculating energy residuals based on probability quantiles to ensure realistic waste estimation.
-	\item \textbf{Ontology-driven RCA}: A diagnostic sweep mechanism that utilizes the building's functional tree to attribute anomalies to specific sub-meters.
-	\item \textbf{AI-synthesized diagnostics}: The integration of large language models (LLMs) to provide natural-language explanations and remediation steps.
+  \item A formalization of building-energy anomaly detection as multivariate contextual point anomaly detection under multimodality and non-stationarity.
+  \item An empirical and theoretical critique of deterministic forecasting-based anomaly detectors and their structural failure modes.
+  \item A stochastic detection framework based on probabilistic normative bands derived from foundation models.
+  \item A financially interpretable quantification layer that transforms deviations into monetary loss estimates.
+  \item A hierarchical root-cause attribution pipeline grounded in building ontologies and causal dependencies.
+  	\item A domain-specific multivariate benchmark dataset generated via \ac{BOPTEST} with labeled contextual fault scenarios (see Section~\ref{sec:boptest-benchmark}).
+  	\item A fully integrated, scalable, multi-tenant implementation deployed within a production IoT building platform.
+  	\item A methodological foundation for the development of a universal energy foundation model supporting zero-shot anomaly detection and standardized baseline comparison in accordance with the \ac{IPMVP}.
 \end{itemize}
 
-\section{System Environment: The Eliona Platform}
-
-The research was conducted and implemented within the Eliona IoT platform, a modular environment designed for high-scale building automation. The platform provides the necessary hierarchical metadata and telemetry storage through a PostgreSQL/TimescaleDB infrastructure. The resulting system is designed to be multi-tenant, scalable, and capable of operating in both cloud-based Azure Kubernetes Services (AKS) and on-premise environments.
+This work assumes that the historical baseline used for model context represents nominal building operation. The framework is therefore designed to detect deviations emerging after baseline establishment and does not aim to retroactively identify faults that were already persistently present in historical reference data. Furthermore, the scope is limited to aggregated building-energy telemetry and does not target high-frequency electrical fault detection, equipment-level vibration analysis, or cybersecurity intrusion detection.
