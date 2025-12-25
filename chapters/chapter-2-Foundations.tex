@@ -1,6 +1,10 @@
 \chapter{Foundations}
 \label{chap:fundamentals}
-This chapter establishes the theoretical and methodological foundations required for a comprehensive understanding of the subsequent research. The analysis begins with an examination of the technical characteristics and physical composition of building energy data to define the operational parameters. Subsequently, the fundamental concepts of anomalies are explored, encompassing the classification of specific types and their manifestation in temporal data. This positioning allows for the integration of the current use case into the broader field of \ac{TSAD}. Finally, Chapter~\ref{chap:state-of-the-art} traces the technical evolution of detection methodologies and provides a systematic review of the current \ac{SOTA}.
+
+This chapter establishes the formal foundations required for contextual anomaly detection in building-energy telemetry. It characterizes the structural, statistical, and causal properties of building-energy data, defines the relevant anomaly taxonomies, and introduces the methodological and benchmarking concepts used throughout this thesis.
+
+Based on these foundations, the chapter derives formal modeling requirements that constrain the design of detection, quantification, and attribution methodologies developed in the subsequent chapters.
+
 \section{Characteristics of Building Energy Data}
 \label{sec:building-energy-data}
 
@@ -100,27 +104,6 @@ The integrity of telemetry streams depends on the stability of the communication
 	\item[Aggregation Spikes:] Buffered data retransmission following outages may produce virtual load spikes, reflecting delayed reporting rather than physical surges in energy demand.
 \end{description}
 
-\subsection{Synthesis of Data Characteristics}
-\label{subsec:synthesis-energy-data-complexity}
-
-Building-energy telemetry constitutes a multivariate, multimodal, and non-stationary stochastic process governed by a causal chain spanning demand, control, and mechanical execution. Anomalies observed at aggregate meters therefore represent manifestations of upstream technical and behavioural faults.
-
-These data exhibit strong temporal autocorrelation and persistence, regime-dependent seasonality, multimodal mixture distributions, and digital transmission artifacts introduced by the acquisition pipeline. Consequently, effective anomaly detection must satisfy the following formal requirements:
-
-\begin{enumerate}
-	\item \textbf{Probabilistic multivariate modelling}\label{req:probabilistic-mixture}\\
-	Expected energy behaviour must be modelled probabilistically as a multivariate mixture distribution rather than as a deterministic point estimate, so that multimodal regimes and cross-variable dependencies are represented explicitly.
-
-	\item \textbf{Robustness to temporal dependence and persistence}\label{req:robust-persistence}\\
-	Detection must remain robust under strong autocorrelation, long-duration regime persistence, and seasonal pattern shifts, ensuring that sustained faults are not absorbed into the learned baseline.
-
-	\item \textbf{Separation of physical faults and digital artifacts}\label{req:artifact-separation}\\
-	Digital measurement artifacts\textemdash such as transmission gaps and aggregation spikes\textemdash must be distinguished from physical system anomalies through explicit preprocessing and data-quality handling.
-\end{enumerate}
-
-Taken together, these characteristics and requirements formally define the modelling assumptions and architectural constraints that guide the anomaly detection methodologies developed in this thesis.
-
-
 \section{Foundations of Anomaly Detection}
 \label{sec:fundamentals-anomaly-detection}
 
@@ -170,11 +153,6 @@ The analyzed data is therefore classified as multivariate with multi-mode normal
   \item[Multiple Different Anomalies:] Co-occurring anomalies of heterogeneous types.
 \end{description}
 
-\subsection{Research Scope}
-
-This work focuses on contextual point anomalies in multivariate building-energy telemetry. High-frequency subsequence anomalies manifest as contextual point deviations in aggregated energy series and are therefore addressed implicitly.
-
-A central methodological challenge is the detection of multiple similar anomalies under non-stationarity, as recurrent inefficiencies may be absorbed into learned baselines. The proposed framework explicitly addresses this normality-drift problem through probabilistic modeling and controlled baseline adaptation.
 
 \section{Methodological Approaches to Anomaly Detection}
 \label{sec:methodological-approaches}
@@ -228,64 +206,44 @@ Anomaly detection approaches are grouped into three methodological families:
 \end{description}
 
 This thesis focuses on prediction-based approaches, as they are the only methodological family that provides an explicit expected-value baseline, enabling deviations to be quantified in physical units and directly translated into financial impact. This property is essential for contextual building-energy anomaly detection and economic loss estimation.
-
 \section{Benchmarking Foundations}
 \label{sec:benchmarking-foundations}
 
-To determine how well an anomaly detection system works, it must be evaluated against a dataset where the correct outcomes are already known. This process is referred to as benchmarking and relies on comparing the model's decisions with a reference set of labels, the \gls{ground-truth}, to quantify detection performance.
+Benchmarking evaluates anomaly detection performance against labelled reference datasets by comparing model decisions to ground-truth annotations.
 
-\subsection{Binary Labeling and Ground Truth}
-\label{subsec:binary-labeling-ground-truth}
+\subsection{Binary Labels and Confusion Matrix}
 
-The foundation of any benchmark is a labeled dataset in which each observation is assigned a binary label indicating whether it is considered normal or anomalous. In this context, a label of $0$ denotes normal operation and a label of $1$ denotes an anomaly, such as a fault or unusual event. When an algorithm analyzes this dataset, it produces its own sequence of binary decisions. Benchmarking assesses how closely these model-generated labels align with the original \gls{ground-truth} labels.
+Each observation is assigned a binary label (normal vs. anomalous). Model predictions are evaluated using the confusion matrix, yielding counts of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN).
 
-\subsection{The Confusion Matrix: Four Possible Outcomes}
-\label{subsec:confusion-matrix}
+\subsection{Evaluation Metrics}
 
-When the model's predictions are compared to the \gls{ground-truth}, each observation falls into one of four categories. These outcomes are summarized in a \gls{confusion-matrix}, which serves as a scorecard for the detection system:
+Performance is summarized using precision, recall, and the F1 score:
 
-\begin{description}
-	\item[True Positive (\ac{TP}):] The model correctly identifies an anomaly; the ground truth label is $1$ and the model predicts $1$.
+\[
+\mathrm{Precision} = \frac{TP}{TP+FP}, \quad
+\mathrm{Recall} = \frac{TP}{TP+FN}, \quad
+F1 = 2 \cdot \frac{\mathrm{Precision}\cdot\mathrm{Recall}}{\mathrm{Precision}+\mathrm{Recall}}.
+\]
 
-	\item[True Negative (\ac{TN}):] The model correctly identifies normal operation; the ground truth label is $0$ and the model predicts $0$.
-
-	\item[False Positive (\ac{FP}):] The model raises a false alarm; it predicts an anomaly ($1$) while the ground truth label is normal ($0$).
-
-	\item[False Negative (\ac{FN}):] The model misses an anomaly; the ground truth label is $1$ but the model predicts normal operation ($0$).
-\end{description}
-
-These four counts form the quantitative basis for most evaluation metrics used in anomaly detection benchmarks.
-
-\subsection{Measuring Success: Precision, Recall, and the F1 Score}
-\label{subsec:precision-recall-f1}
-
-The entries of the \gls{confusion-matrix} are used to derive summary metrics that characterize different aspects of a model's performance. Three central measures in anomaly detection are \gls{precision}, \gls{recall}, and the \ac{F1} score.
-
-\gls{precision} quantifies how reliable the alarms are. It answers the question: when the model flags an anomaly, how often is this decision correct? Formally, precision is defined as the ratio of correctly detected anomalies to all observations that the model classified as anomalous,
-\begin{equation}
-	\mathrm{Precision} = \frac{TP}{TP + FP}.
-\end{equation}
-A high precision value indicates that the model rarely raises false alarms.
-
-\gls{recall} quantifies how many anomalies are successfully detected. It answers the question: of all anomalies that actually occurred, how many did the model identify? Recall is defined as
-\begin{equation}
-	\mathrm{Recall} = \frac{TP}{TP + FN}.
-\end{equation}
-A high recall value indicates that the model is sensitive to anomalous behavior and misses few faults.
-
-In practice, there is often a trade-off between \gls{precision} and \gls{recall}. A model that labels almost every point as anomalous may achieve high recall but very low precision, whereas an overly conservative model may exhibit the opposite behavior. The \ac{F1} score provides a single scalar summary by combining precision and recall through their harmonic mean,
-\begin{equation}
-	F1 = 2 \cdot \frac{\mathrm{Precision} \cdot \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}.
-\end{equation}
-
-A high \ac{F1} score indicates that the model achieves a balanced compromise: it detects a large fraction of true anomalies while keeping the number of false alarms at a manageable level. In many benchmarking studies, this score is used as the primary indicator for ranking competing detection methods.
+These metrics quantify alarm reliability, detection sensitivity, and their balanced trade-off, respectively.
 
 \section{Synthesis of Foundations}
-\label{subsec:synthesis-foundations}
-The examination of building energy data in Section~\ref{sec:building-energy-data} and the formal taxonomies of anomaly detection in Section~\ref{sec:fundamentals-anomaly-detection} reveal a highly specialized operational environment. Because building energy consumption is an aggregate signal driven by a complex causal chain (see Subsection~\ref{subsec:causal-chain-energy-consumption}), it is fundamentally characterized as a multivariate time series (see Subsection~\ref{subsec:building-energy-multivariate-ts}). This multidimensionality necessitates a focus on contextual point anomalies (see Subsection~\ref{subsec:taxonomy-anomalies}), as abnormality is defined primarily relative to the prevailing environmental and operational state rather than to a single global range. Furthermore, the temporal aggregation of energy data into 15-minute or hourly intervals (see Subsection~\ref{subsec:statistical-distribution-stochastic-noise}) effectively transforms high-frequency rhythmic faults into detectable point-based deviations in the aggregated series.
+\label{sec:synthesis-foundations}
 
-The implementation of detection strategies is constrained by several domain-specific factors. Human-driven consumption and manual behavioral interventions introduce a stochastic element to the time series (see Subsection~\ref{subsec:internal-loads-occupancy}), where these probabilistic variations deviate from standard Gaussian models and require detection frameworks capable of distinguishing between random noise and technical faults (see Subsection~\ref{subsec:statistical-distribution-stochastic-noise}). Simultaneously, the physical degradation of mechanical components causes a gradual increase in the power required for the same service output (see Subsection~\ref{subsec:structural-technical-influences}), ensuring that the definition of normality is non-stationary and undergoes baseline drift over long temporal scales.
+Building-energy telemetry constitutes a multivariate, multimodal, and non-stationary stochastic process governed by a causal chain spanning demand, control, and mechanical execution. Deviations observed at aggregate meters therefore represent manifestations of upstream technical or behavioural faults rather than isolated numerical outliers.
 
-Within this context, semi-supervised and unsupervised learning paradigms (see Subsection~\ref{subsec:learning-paradigms}) introduce a fundamental technical contradiction when historical data is utilized in the absence of expert-annotated fault histories. If persistent or repetitive anomalies were already present during the training period, the model incorrectly incorporates these deviations into its learned definition of normality. This risk of normality drift, particularly in the presence of multiple similar anomalies (see Subsection~\ref{subsec:taxonomy-anomalies}), leads to suppressed alerts and remains a central constraint for the subsequent methodological selection.
+From the structural and statistical properties of these data, the following formal requirements for anomaly detection follow:
 
-The establishment of these data-driven requirements and theoretical classifications lays the foundation for a systematic evaluation of the current state of the art in Chapter~\ref{chap:state-of-the-art}, where concrete algorithmic choices are assessed against the constraints of building energy data.
+\begin{enumerate}
+	\item \textbf{Probabilistic multivariate modeling}\\
+	Expected behaviour must be represented as a multivariate mixture distribution rather than a deterministic point estimate, in order to capture multimodal operating regimes and cross-variable dependencies.
+
+	\item \textbf{Robustness to temporal dependence and persistence}\\
+	Detection must remain stable under strong autocorrelation, seasonal regime shifts, and long-duration persistence, such that sustained deviations are not absorbed into the learned baseline.
+
+	\item \textbf{Separation of physical faults and digital artifacts}\\
+	Transmission gaps, aggregation spikes, and other digital artifacts must be distinguished from physical anomalies through explicit preprocessing and data-quality handling.
+\end{enumerate}
+
+Furthermore, building-energy telemetry is formally classified as a multivariate, multi-mode time series dominated by contextual point anomalies. Subsequence faults therefore manifest as contextual point deviations at the aggregation horizons relevant for energy monitoring.  
+Persistent deviations present in historical baselines may be absorbed into learned normality (normality drift), representing a fundamental constraint for semi-supervised and unsupervised detection paradigms.
