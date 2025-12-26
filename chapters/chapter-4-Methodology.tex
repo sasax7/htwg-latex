@@ -29,93 +29,142 @@ A central feature of the platform is its asset model and ontology, which provide
 
 	\item[Tagging] Metadata tags are assigned to assets to group and query telemetry points across different buildings and tenants. Tags provide an additional semantic layer on top of the hierarchies, which is utilized by the anomaly detection system to retrieve relevant multivariate signals for model training and scoring.
 \end{description}
+\section{Financial Impact Quantification}
+\label{sec:financial-impact}
 
-\section{System Requirements Specification}
+Beyond detection, practical energy anomaly management requires a reliable estimate
+of the associated financial impact. A common naïve approach computes the deviation
+between the observed consumption $x_t$ and a single expected value (typically the
+mean prediction $\mu_t$) and directly converts this difference into excess energy
+cost. However, as illustrated in Figure~\ref{fig:mixture-distribution}, this approach
+is fundamentally flawed under multimodal operating regimes: the mean may lie in a
+low-density region that is never physically realized, leading to systematically
+inflated or misleading loss estimates.
 
-The following specifications define the mandatory capabilities of the integrated system and the detection methodology.
+\subsection{Distribution-Aware Baseline Selection}
 
-\subsection{Functional Requirements}
+When a full predictive distribution is available—specifically a mixture density
+representation—the expected baseline for financial quantification should be
+conditioned on the most plausible operating mode given the observation. Let the
+predictive distribution at time $t$ be given by a mixture model
+\[
+p_t(x) = \sum_{k=1}^{K} \pi_{t,k}\,\mathcal{N}(x \mid \mu_{t,k}, \sigma_{t,k}^2),
+\]
+where $\pi_{t,k}$, $\mu_{t,k}$, and $\sigma_{t,k}$ denote the mixture weights, means,
+and variances, respectively.
 
-The functional requirements focus on the operational utility and the diagnostic depth of the system within the hierarchical building environment.
+Instead of using the global mean
+$\mu_t = \sum_k \pi_{t,k}\mu_{t,k}$, the reference baseline $\tilde{\mu}_t$ is defined
+as the mean of the mixture component that maximizes the posterior responsibility for
+the observed value:
+\[
+k^* = \arg\max_k \; \pi_{t,k}\,\mathcal{N}(x_t \mid \mu_{t,k}, \sigma_{t,k}^2),
+\qquad
+\tilde{\mu}_t = \mu_{t,k^*}.
+\]
 
-\begin{description}
-	\item[Multi-Tenancy and Hierarchy Management] The system must facilitate the simultaneous processing of data for multiple tenants while ensuring strict data isolation between organizations. It must support a structural hierarchy where each tenant governs multiple sites, and each site contains diverse building complexes.
+This formulation assumes that, even in the presence of an anomaly, the observed value
+originates from a specific operational regime rather than from an unphysical average
+across regimes. The instantaneous excess consumption is then conservatively estimated
+as
+\[
+\Delta x_t = \max(0,\; x_t - \tilde{\mu}_t).
+\]
 
-	\item[License-Based Activation] The implementation must provide granular administrative control to activate or deactivate anomaly detection services for specific tenants based on their current license status.
+\subsection{Fallback Strategy Without Mixture Information}
 
-	\item[Multivariate Contextual Modeling] To identify context-dependent deviations, the architecture must integrate parallel sensor channels, specifically incorporating site-localized weather data to capture environmental dependencies.
+In scenarios where mixture components are not accessible and only unimodal
+uncertainty estimates are available, a conservative fallback strategy is employed.
+Instead of the mean prediction, an upper-confidence reference is used:
+\[
+\tilde{\mu}_t = \mu_t + \sigma_t,
+\]
+where $\sigma_t$ denotes the predictive standard deviation. This choice ensures that
+only deviations exceeding expected stochastic variability contribute to the estimated
+loss, thereby preventing systematic overestimation.
 
-	\item[Financial Impact Quantification] The pipeline must automate the calculation of monetary costs associated with energy waste by quantifying the deviation between the observed consumption and the predicted normative mean.
+\subsection{Design Rationale}
 
-	\item[Automated Root Cause Analysis (RCA)] Detected anomalies must be traceable to their specific sensor or subsystem origin by leveraging the platform's functional tree and building ontology.
+Both strategies intentionally bias the financial impact estimate toward a lower bound.
+This is a deliberate design choice: in operational energy management, false inflation
+of financial losses is more detrimental than moderate underestimation, as it erodes
+trust in automated analytics and leads to suboptimal prioritization. By conditioning
+the baseline on the most plausible operating regime—or, alternatively, on a
+high-confidence envelope—the proposed approach ensures that reported financial impact
+reflects physically meaningful and economically defensible excess consumption.
 
-	\item[Cross-Layer Observability] The system must detect faults across different operational planes, specifically identifying issues in the Supply Layer (e.g., generation failure) and the Control Layer (e.g., setpoint malfunctions), regardless of whether these issues were present during the initial baseline period.
+\section{Hierarchical Root Cause Analysis and Action Synthesis}
+\label{sec:root-cause-analysis}
 
-	\item[Non-Stationary Adaptation] Detection models must adapt to evolving building characteristics, such as equipment degradation or slow behavioral shifts, to maintain long-term accuracy.
+Detecting an anomaly at an aggregate meter provides limited operational value unless
+its origin can be localized within the building system. To enable diagnostic
+interpretability, the proposed framework performs hierarchical root cause analysis
+(RCA) by leveraging the asset ontology and geographical hierarchy of the Eliona
+platform.
 
-	\item[Anomaly Persistence Management] Mechanisms must be implemented to prevent recurring or persistent anomalies from being incorrectly integrated into the "normal" baseline, ensuring that continuous faults remain flagged as deviations.
-\end{description}
+\subsection{Ontology-Guided Hierarchical Attribution}
 
-\subsection{Operational and Data Integrity Requirements}
+Eliona models building assets in a hierarchical tree structure that reflects
+geographical containment (e.g., Site $\rightarrow$ Building $\rightarrow$ Floor
+$\rightarrow$ Room) as well as functional decomposition (e.g., Main Meter
+$\rightarrow$ Sub-meter $\rightarrow$ Device). When an anomaly is detected at an
+aggregate level, such as a building main meter, all descendant assets in the hierarchy
+are queried for their corresponding anomaly scores and financial impact estimates.
 
-These requirements define the technical resilience and performance constraints necessary for high-throughput production environments.
+For each asset $a_i$ in the subtree, an impact measure $\Delta C_{t}(a_i)$ is computed
+based on the methodology described in Section~\ref{sec:financial-impact}. Root cause
+attribution is then performed by ranking assets according to their cumulative impact
+over the anomaly window:
+\[
+\Delta C(a_i) = \sum_{t \in \mathcal{T}} \Delta C_t(a_i),
+\]
+where $\mathcal{T}$ denotes the set of timestamps associated with the detected anomaly.
+Assets with the highest contribution are identified as the most probable sources of
+the aggregate deviation.
 
-\begin{description}
-	\item[Data Quality Resilience] The ingestion and preparation layer must identify and bypass data integrity issues, such as transmission gaps and sensor recovery spikes, to prevent the generation of false-positive alerts.
+This hierarchical decomposition allows anomalies to be localized not only to specific
+meters, but also to concrete physical contexts such as floors, rooms, or functional
+subsystems.
 
-	\item[Exclusion of External Drivers] The system must distinguish between internal technical faults and extraordinary external events, such as extreme outdoor temperature fluctuations, to avoid incorrectly marking demand-side spikes as system anomalies.
+\subsection{Aggregation by Asset Type}
 
-	\item[Manual Baseline Configuration] The interface must allow users to manually define "healthy" baseline periods, ensuring the model establishes a normative profile based on optimal operational states.
+In addition to per-asset attribution, impacts are aggregated by asset type using the
+semantic labels defined in the ontology (e.g., lighting, HVAC, smart plugs). While
+individual devices may exhibit only minor deviations, their combined impact can be
+substantial. Formally, the aggregated impact for an asset type $\tau$ is defined as:
+\[
+\Delta C(\tau) = \sum_{a_i \in \tau} \Delta C(a_i).
+\]
 
-	\item[Scalability and Parallelism] The architecture must be horizontally scalable, enabling the parallel processing of data streams across multiple buildings and sites to meet high-throughput requirements.
-\end{description}
+This aggregation enables the identification of systematic inefficiencies caused by
+device groups rather than isolated components, such as multiple plug loads in a single
+room or lighting circuits spanning several zones.
 
-\section{Proposed High-Level Architecture}
+\subsection{Contextual Synthesis and Recommendation Generation}
 
-The proposed system utilizes a modular, microservice-oriented design to fulfill the requirements of multi-tenancy and scalability. It is realized through a closed-loop data pipeline that bridges the existing Eliona infrastructure with specialized detection logic.
+The outputs of the hierarchical and type-based RCA—localized assets, aggregated
+impacts, temporal patterns, and associated environmental context (e.g., time of day,
+weekday/weekend, weather conditions)—are consolidated into a structured diagnostic
+representation. This representation is subsequently provided to a large language
+model (LLM) configured with domain-specific expert knowledge.
 
-\subsection{Component Interaction and Data Flow}
+Rather than performing detection or attribution, the LLM operates exclusively at the
+interpretation layer. Given the structured evidence, it generates human-readable
+explanations and actionable recommendations. For example, a sustained nighttime
+anomaly attributed to lighting meters in unoccupied rooms may be interpreted as lights
+left on after operating hours, accompanied by suggested mitigation actions such as
+automated shutdown schedules or occupancy-based control. Potential savings are
+quantified by extrapolating the estimated financial impact per occurrence.
 
-The architecture consists of three primary technical domains: the Eliona Core, the Anomaly Detection Microservice, and the Analytics Endpoint.
+\subsection{Design Rationale}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=1.0\textwidth]{images/first-high-level-architecture.jpg}
-\caption{High-level architecture of the integrated anomaly detection system, illustrating the interaction between the Eliona Core, the anomaly detection microservice, and the analytics endpoint.}
-\label{fig:high-level-architecture}
-\end{figure}
+This two-stage approach deliberately separates statistical inference from semantic
+reasoning. Root cause localization and impact quantification are derived deterministically
+from measured data and the asset ontology, ensuring traceability and reproducibility.
+The LLM is used solely to translate these results into operational insights and
+recommendations, improving usability without compromising analytical rigor or
+introducing opaque decision-making into the detection pipeline.
 
-\begin{description}
-	\item[Eliona Core (Backend and Database)] This domain serves as the source of truth, providing raw telemetry via the central PostgreSQL/TimescaleDB instance.
-
-	\item[Microservice Docker] Acting as the orchestration layer, this autonomous container manages the ingestion of multi-tenant data. It performs data preparation, which includes cleaning signal noise and transforming time-series data into multivariate tensors suitable for the model.
-
-	\item[Method Endpoint] This dedicated component hosts the detection algorithm. It receives the prepared data tensors and returns probabilistic scores to the microservice for final processing.
-
-	\item[Anomaly Object Creation] Upon receiving a detection signal, the microservice generates a structured anomaly object. This object, containing diagnostic data and financial impact, is written back to the Eliona database and subsequently visualized in the frontend via API~V1.
-\end{description}
-
-\subsection{Integration into the Azure Ecosystem}
-
-For cloud-based deployments, the architecture is embedded within Azure Kubernetes Services (AKS). This ensures that the microservice can scale horizontally to handle high-throughput requirements across multiple tenants. The use of Azure Database for PostgreSQL provides a robust, distributed foundation for the platform's metadata and telemetry.
-
-\section{Proof of Concept (PoC): Stochastic Feasibility}
-
-The PoC was implemented to validate the hypothesis that stochastic modeling can effectively address the non-normal distributions found in building energy telemetry. This iteration focused on the core detection mechanism and the integration of diagnostic layers.
-
-\subsection{MDN-Based Stochastic Prediction}
-
-The initial implementation utilized a Mixture Density Network (MDN) as the core detection logic. Unlike deterministic models, the MDN was trained to output a conditional probability distribution of consumption based on contextual features such as outdoor temperature and occupancy. By minimizing Negative Log-Likelihood (NLL), the model captured the multi-modal nature of the energy signals.
-
-\subsection{Diagnostic Integration: SHAP and LLM}
-
-To fulfill the requirements for Root Cause Analysis (RCA) and actionable insights, the PoC incorporated two diagnostic layers:
-
-\begin{description}
-	\item[Feature Interpretability] SHAP values were utilized to identify the specific contextual drivers influencing each prediction. For instance, if the occupancy feature exhibited high impact during a night-time anomaly, it indicated a likely fault in the lighting or HVAC scheduling.
-
-	\item[Natural Language Synthesis] The results from the SHAP analysis and the financial residuals were fed into a Large Language Model (LLM). This allowed the system to generate human-readable explanations and remediation steps, transforming abstract data into operational guidance.
-\end{description}
 
 \section{Critique of Sequential Forecasting for Anomaly Detection}
 \label{sec:critique-sequential}
@@ -261,30 +310,114 @@ Mixture Density Networks address both issues by learning multiple kernels simult
 	\label{fig:mdn-heatmap}
 \end{figure}
 
-	\section{Benchmark Data Generation and Composition}
-	\label{sec:boptest-benchmark}
+\section{Distribution-Aware Anomaly Scoring for Mixture Density Models}
+\label{sec:mdn-anomaly-scoring}
 
-	To compare the proposed methodology against established baselines, a comprehensive benchmark dataset was synthesized with the Building Optimization Performance Test Framework (BOPTEST)\parencite{BOPTEST}. BOPTEST provides high-fidelity building simulations that include weather, occupancy, and HVAC subsystems, offering a controlled sandbox for evaluating diagnostic strategies without legacy noise.
+Building on Section~\ref{sec:statistical-limitations}, which details the Variable Shift dataset and its bimodal operating regimes, we now analyze how distribution-aware anomaly scores behave when the predictive density itself is multimodal. The deterministic residual failures from Section~\ref{sec:critique-sequential} are amplified in this setting because no single ``expected value'' exists, making deviation from the mean a misleading proxy for abnormality.
 
-	\subsection{Simulation Environment and Baseline Construction}
+Figure~\ref{fig:variable-shift-mdn-scores} extends the MDN perspective by overlaying several candidate scores derived from the same mixture distribution: mean residuals, PIT, negative log-likelihood, and the proposed Density--Quantile (DQ) family.
 
-	The ``Multizone Office Complex Air'' test case was selected as it emulates a large office with coupled thermal zones, AHUs, and realistic schedules.
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-multi-scores-panel.png}
+	\caption{Comparison of anomaly scoring methods derived from a Mixture Density Network under a bimodal operating regime with an injected intermediate anomaly. The top panel shows the predicted probability density together with the actual observation and the MDN mean. Subsequent panels compare mean residuals, PIT-based scores, negative log-likelihood, and the proposed Density--Quantile (DQ) scores and severities.}
+	\label{fig:variable-shift-mdn-scores}
+\end{figure}
 
-	\begin{description}
-		\item[Data fidelity] The simulator injects geographically consistent weather files, dynamic occupancy, and holiday calendars, ensuring the external drivers mirror commercial buildings.
-		\item[Integrity] Because all sensors are generated virtually, the baseline year is free of telemetry dropouts, frozen devices, or undocumented setpoint overrides, giving a clean reference profile for ``healthy'' operation.
-		\item[Temporal scope] A continuous year of data (15-minute granularity) was exported to capture seasonal shifts and enable out-of-season evaluation.
-	\end{description}
+\subsection{Mean Residual: Failure Under Multimodality}
 
-	\subsection{Feature Selection and Control Layer Logic}
+The most common anomaly score is the absolute residual between the observation $x_t$ and the predicted mean $\mu_t$:
+\begin{equation}
+	s_t^{\text{mean}} = |x_t - \mu_t|.
+\end{equation}
 
-	The raw export was decomposed into contextual features and consumption targets while deliberately excluding control-loop variables that could leak fault signatures.
+In multimodal settings, the mean of the predictive distribution often lies in a region of \emph{low probability mass}. As shown in Figure~\ref{fig:variable-shift-mdn-scores}, the MDN mean converges to an intermediate value between the two legitimate modes. Consequently, observations that are perfectly normal but belong to either mode exhibit large residuals and are falsely flagged as anomalous. Conversely, the injected anomaly---located near the mean but inside a low-density valley---produces a small residual and is incorrectly classified as normal.
 
-	\begin{description}
-		\item[Leakage mitigation] Control-layer signals (e.g., valve positions, supply setpoints) were omitted. If a stuck valve drives excess consumption and its command signal is provided to the model, the anomaly becomes ``explainable'' by the feature set and disappears in the residual.
-		\item[Included features] Exogenous drivers such as outdoor temperature, global horizontal irradiance, wind speed, occupancy counts, calendar flags (weekday/weekend, holidays), and cyclical encodings (hour-of-day, day-of-year).
-		\item[Target variables] Seventeen metered electricity channels including the aggregate main meter, chiller and boiler production meters, AHU fan feeds, pump circuits, and lighting zones. This enables both whole-building financial attribution and subsystem diagnostics.
-	\end{description}
+This demonstrates that residual magnitude is not a valid proxy for abnormality when the expected behaviour cannot be represented by a single point estimate.
+
+\subsection{Probability Integral Transform (PIT)}
+
+A distribution-aware alternative is the Probability Integral Transform (PIT), which maps each observation to its cumulative probability under the predicted distribution:
+\begin{equation}
+	\text{PIT}_t = F_t(x_t) = \int_{-\infty}^{x_t} p_t(y)\, \mathrm{d}y,
+\end{equation}
+where $p_t(y)$ denotes the MDN predictive density at time $t$. A symmetric anomaly score can be defined as:
+\begin{equation}
+	s_t^{\text{PIT}} = 1 - \text{PIT}_t.
+\end{equation}
+
+PIT correctly identifies observations in the extreme tails of the distribution. However, it remains insensitive to \emph{low-density regions between modes}. In Figure~\ref{fig:variable-shift-mdn-scores}, the injected anomaly lies near the median of the distribution and therefore yields a moderate PIT value, despite being highly unlikely. PIT thus fails to detect anomalies that occupy density valleys rather than tails.
+
+\subsection{Negative Log-Likelihood and Its Limitations}
+
+Another principled score is the negative log-likelihood (NLL):
+\begin{equation}
+	s_t^{\text{NLL}} = -\log p_t(x_t).
+\end{equation}
+
+NLL correctly assigns high anomaly scores to observations in low-density regions, including the valley between modes. As shown in Figure~\ref{fig:variable-shift-mdn-scores}, it robustly detects the injected anomaly.
+
+However, NLL values are \emph{not comparable across time}. Each timestamp $t$ corresponds to a different predictive distribution with different entropy, variance, and scale. As a result, absolute NLL magnitudes cannot be meaningfully thresholded or aggregated over time, limiting their use for persistence analysis, severity ranking, and financial quantification.
+
+\subsection{Density--Quantile (DQ) Probability}
+
+To obtain a score that is both distribution-aware and comparable across time, this work introduces the Density--Quantile (DQ) probability. Instead of evaluating the density at a single point, DQ measures the proportion of probability mass that is \emph{less likely} than the observed value:
+\begin{equation}
+	\text{DQ}_t = \int_{\{y : p_t(y) \leq p_t(x_t)\}} p_t(y)\, \mathrm{d}y.
+\end{equation}
+
+By construction, $\text{DQ}_t \in (0,1]$ and is invariant to the shape, scale, and entropy of the underlying distribution. Observations in high-density regions yield large DQ values, while points located in tails or low-density valleys yield small values.
+
+An anomaly score can therefore be defined as:
+\begin{equation}
+	s_t^{\text{DQ}} = 1 - \text{DQ}_t.
+\end{equation}
+
+As shown in Figure~\ref{fig:variable-shift-mdn-scores}, this score simultaneously suppresses false positives for legitimate operating modes and sharply highlights the injected anomaly located between the modes.
+
+\subsection{Density--Quantile Severity Scaling}
+
+While $1-\text{DQ}_t$ provides a normalized anomaly score, it does not reflect the \emph{relative improbability} of extreme events. For example, the difference between $\text{DQ}=0.99$ and $\text{DQ}=0.98$ corresponds to a doubling of unlikeliness, yet both values are close on a linear scale.
+
+To address this, a severity transformation is introduced:
+\begin{equation}
+	\text{Severity}_t = \min\!\left(1,\; \frac{p_{\min}}{\text{DQ}_t}\right),
+\end{equation}
+where $p_{\min}$ defines the minimum reference quantile that maps to maximum severity.
+
+This transformation preserves the ordering induced by DQ while amplifying differences in the extreme low-probability regime. By selecting $p_{\min}$, the sensitivity of the detector can be explicitly controlled, as illustrated in Figure~\ref{fig:variable-shift-mdn-scores} for $p_{\min}=10^{-2}$ and $p_{\min}=10^{-4}$.
+
+\subsection{Summary}
+
+Density--Quantile scoring combines the strengths of likelihood-based detection with the comparability of quantile methods. Unlike residuals, it respects multimodality; unlike PIT, it captures density valleys; and unlike NLL, it produces normalized, time-comparable scores suitable for persistence tracking, severity ranking, and downstream financial impact estimation. For these reasons, DQ-based scoring forms the core anomaly quantification mechanism in this work.
+
+
+
+
+\section{Benchmark Data Generation and Composition}
+\label{sec:boptest-benchmark}
+
+To compare the proposed methodology against established baselines, a comprehensive benchmark dataset was synthesized with the Building Optimization Performance Test Framework (BOPTEST)\parencite{BOPTEST}. BOPTEST provides high-fidelity building simulations that include weather, occupancy, and HVAC subsystems, offering a controlled sandbox for evaluating diagnostic strategies without legacy noise.
+
+\subsection{Simulation Environment and Baseline Construction}
+
+The ``Multizone Office Complex Air'' test case was selected as it emulates a large office with coupled thermal zones, AHUs, and realistic schedules.
+
+\begin{description}
+	\item[Data fidelity] The simulator injects geographically consistent weather files, dynamic occupancy, and holiday calendars, ensuring the external drivers mirror commercial buildings.
+	\item[Integrity] Because all sensors are generated virtually, the baseline year is free of telemetry dropouts, frozen devices, or undocumented setpoint overrides, giving a clean reference profile for ``healthy'' operation.
+	\item[Temporal scope] A continuous year of data (15-minute granularity) was exported to capture seasonal shifts and enable out-of-season evaluation.
+\end{description}
+
+\subsection{Feature Selection and Control Layer Logic}
+
+The raw export was decomposed into contextual features and consumption targets while deliberately excluding control-loop variables that could leak fault signatures.
+
+\begin{description}
+	\item[Leakage mitigation] Control-layer signals (e.g., valve positions, supply setpoints) were omitted. If a stuck valve drives excess consumption and its command signal is provided to the model, the anomaly becomes ``explainable'' by the feature set and disappears in the residual.
+	\item[Included features] Exogenous drivers such as outdoor temperature, global horizontal irradiance, wind speed, occupancy counts, calendar flags (weekday/weekend, holidays), and cyclical encodings (hour-of-day, day-of-year).
+	\item[Target variables] Seventeen metered electricity channels including the aggregate main meter, chiller and boiler production meters, AHU fan feeds, pump circuits, and lighting zones. This enables both whole-building financial attribution and subsystem diagnostics.
+\end{description}
 
 \begin{figure}[htbp]
 	\centering
@@ -293,22 +426,22 @@ Mixture Density Networks address both issues by learning multiple kernels simult
 	\label{fig:feature-importance}
 \end{figure}
 
-	\section{Experimental Data Segmentation and Anomaly Injection}
-	\label{sec:benchmark-anomalies}
+\section{Experimental Data Segmentation and Anomaly Injection}
+\label{sec:benchmark-anomalies}
 
-	To probe generalization and sample efficiency, the baseline year was sliced into multiple training/testing regimes and augmented with a bounded taxonomy of synthetic faults. Anomalous points never exceed 5\% of any derived dataset to preserve realism on the aggregated main meter.
+To probe generalization and sample efficiency, the baseline year was sliced into multiple training/testing regimes and augmented with a bounded taxonomy of synthetic faults. Anomalous points never exceed 5\% of any derived dataset to preserve realism on the aggregated main meter.
 
-	\subsection{Segmentation Strategy}
+\subsection{Segmentation Strategy}
 
-	\begin{itemize}
-		\item \textbf{Long-term:} Two non-overlapping six-month windows to analyze seasonal translation (e.g., winter learning, summer detection).
-		\item \textbf{Medium-term:} Four quarterly (three-month) windows to test model freshness requirements.
-		\item \textbf{Short-term:} Four two-week slices representing spring, summer, fall, and winter for low-data scenarios.
-	\end{itemize}
+\begin{itemize}
+	\item \textbf{Long-term:} Two non-overlapping six-month windows to analyze seasonal translation (e.g., winter learning, summer detection).
+	\item \textbf{Medium-term:} Four quarterly (three-month) windows to test model freshness requirements.
+	\item \textbf{Short-term:} Four two-week slices representing spring, summer, fall, and winter for low-data scenarios.
+\end{itemize}
 
-	\subsection{Anomaly Taxonomy and Labeling}
+\subsection{Anomaly Taxonomy and Labeling}
 
-	Custom perturbations were injected per segment, spanning operational, control, and contextual deviations. Table~\ref{tab:anomaly-taxonomy} summarizes the categories applied to the main meter and selected subsystems.
+Custom perturbations were injected per segment, spanning operational, control, and contextual deviations. Table~\ref{tab:anomaly-taxonomy} summarizes the categories applied to the main meter and selected subsystems.
 
 \begin{figure}[htbp]
 	\centering
@@ -317,25 +450,249 @@ Mixture Density Networks address both issues by learning multiple kernels simult
 	\label{fig:anomaly-dataset-examples}
 \end{figure}
 
-	\begin{table}[htbp]
-		\centering
-		\caption{Synthetic anomaly taxonomy used in the BOPTEST benchmark datasets.}
-		\label{tab:anomaly-taxonomy}
-		\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
-			\hline
-				extbf{Category} & \textbf{Description} \\
-			\hline
-			Device failures & Full outage (0 kWh) and degraded operation (\(50\%\) load) for selected meters. \\
-			Stuck states & Forced high-load and low-load plateaus irrespective of schedule. \\
-			Drift profiles & Exponential and linear drifts (10\%--60\%) applied over multi-day horizons. \\
-			Extended spikes & Sustained spikes at 10\%, 25\%, 50\%, and 100\% above baseline for varying durations. \\
-			Contextual/off-hours & Night or weekend consumption persisting at abnormal levels (high/low variants). \\
-			Pattern shifts & Phase shifts of daily load shapes by 30 minutes up to 4 hours. \\
-			Point anomalies & Single-timestep spikes from 10\% to 500\% of nominal demand. \\
-			\hline
-		\end{tabular}
-	\end{table}
+\begin{table}[htbp]
+\centering
+\caption{Synthetic anomaly taxonomy used in the BOPTEST benchmark datasets.}
+\label{tab:anomaly-taxonomy}
+\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+	\hline
+		extbf{Category} & \textbf{Description} \\
+	\hline
+	Device failures & Full outage (0 kWh) and degraded operation (\(50\%\) load) for selected meters. \\
+	Stuck states & Forced high-load and low-load plateaus irrespective of schedule. \\
+	Drift profiles & Exponential and linear drifts (10\%--60\%) applied over multi-day horizons. \\
+	Extended spikes & Sustained spikes at 10\%, 25\%, 50\%, and 100\% above baseline for varying durations. \\
+	Contextual/off-hours & Night or weekend consumption persisting at abnormal levels (high/low variants). \\
+	Pattern shifts & Phase shifts of daily load shapes by 30 minutes up to 4 hours. \\
+	Point anomalies & Single-timestep spikes from 10\% to 500\% of nominal demand. \\
+	\hline
+\end{tabular}
+\end{table}
 
-	Each injected anomaly is labeled with its category, onset, and magnitude, enabling fine-grained evaluation of detection latency, duration coverage, and financial attribution across the benchmark suites described above.
+Each injected anomaly is labeled with its category, onset, and magnitude, enabling fine-grained evaluation of detection latency, duration coverage, and financial attribution across the benchmark suites described above.
+\section{Evaluation Constraints and Benchmark Limitations}
+\label{sec:benchmark-limitations}
 
- 
+While the BOPTEST-based benchmark enables controlled and reproducible evaluation,
+several practical constraints affect the interpretation of the resulting performance
+metrics. These limitations do not invalidate the benchmark, but they do influence the
+comparability and robustness of certain method classes.
+
+\subsection{Hyperparameter Sensitivity and Training Stability}
+
+Several evaluated methods require extensive hyperparameter tuning on a
+per-dataset or per-meter basis. In particular, mixture-density-based models exhibit
+high sensitivity to initialization, learning rates, and regularization settings.
+On some meters, training converged reliably, while on others the optimization process
+diverged due to exploding losses.
+
+As a direct consequence of this instability, benchmark coverage differs substantially
+between methods: while some models successfully completed nearly the full benchmark
+suite, others produced valid results for only a limited subset of meters. Aggregate
+performance metrics for such methods are therefore computed over a reduced and
+potentially favorable sample and must be interpreted cautiously. This asymmetry
+introduces a selection bias in aggregate results, as stable methods with low tuning
+requirements are naturally overrepresented relative to more expressive but fragile
+architectures.
+
+Consequently, reported benchmark scores reflect not only detection capability, but
+also training robustness under limited tuning budgets.
+
+\subsection{Comparability Between Trainable Models and Foundation Models}
+
+A further limitation concerns the comparability between trainable models and
+time-series foundation models. Trainable baselines were fitted using fixed-length
+training windows (e.g., two-week seasonal slices) and evaluated on the same temporal
+context augmented with injected anomalies.
+
+In contrast, foundation models require historical context preceding the evaluation
+window. Consequently, they were provided with additional pre-anomaly data that was
+not available to trainable models, leading to unequal informational priors at
+inference time. This discrepancy is particularly pronounced in short-window
+evaluations and seasonal transfer experiments.
+
+The only configuration in which both model classes operate under closely comparable
+conditions is the year-long training setup followed by winter evaluation, where both
+approaches have access to nearly the same historical context. Even in this case,
+foundation models remain constrained by maximum context lengths (e.g., three months
+for Chronos), preventing full utilization of the available annual history.
+
+\subsection{Implications for Result Interpretation}
+
+These constraints imply that benchmark metrics should be interpreted as indicators of
+practical deployability under realistic engineering constraints rather than as
+absolute measures of algorithmic superiority. In particular, strong performance by
+stable models reflects robustness and ease of deployment, while underperformance by
+more expressive architectures may be attributable to tuning sensitivity rather than
+fundamental modeling limitations.
+
+All benchmark results presented in the following section are therefore discussed in
+light of these constraints, with emphasis on qualitative behavior, persistence
+tracking, and financial interpretability rather than raw aggregate scores alone.
+
+\section{Comparative Model Performance and Structural Evaluation}
+\label{sec:comparative-model-performance}
+
+The following section details the quantitative findings of the benchmark evaluation.
+It analyzes the detection performance of the implemented models across the generated
+datasets and validates the methodological hypotheses regarding feature selection and
+stochastic modeling.
+
+The first evaluation phase comprised a maximum of 16{,}979 individual runs per model
+to ensure statistical significance across the diverse benchmark slices. A critical
+finding involves the performance of the standard CNN (Convolutional Neural Network)
+implementation, which was adapted from the TSB-AD (Time-Series Benchmark for Anomaly
+Detection) library. Although this architecture demonstrated the highest accuracy in
+the multivariate category of the original TSB-AD benchmark, it yielded suboptimal
+results when applied to the building-energy datasets.
+
+The observed performance degradation in the standard CNN supports the hypothesis
+that the inclusion of historical consumption values in the input window negatively
+affects detection stability in non-stationary environments. To address this, a CNN
+Feature-Only model---which utilizes solely exogenous contextual drivers---was
+implemented. This architecture achieved significantly higher detection scores,
+confirming that contextual features provide a more reliable normative baseline than
+autoregressive dependencies for building energy telemetry.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/mdn-dense-cnn-baseline-comparison.png}
+	\caption{Benchmark comparison of neural baselines (dense, CNN, CNN Feature-Only) and mixture-density-based variants across the evaluated meters and dataset slices.}
+	\label{fig:mdn-dense-cnn-baseline-comparison}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/mdn-dense-cnn-baseline-comparison-mainmeter.png}
+	\caption{Benchmark comparison on the building main meter, highlighting the effect of feature-only modeling and stochastic output layers under long-horizon baselines.}
+	\label{fig:mdn-dense-cnn-baseline-comparison-mainmeter}
+\end{figure}
+
+\subsection{Analysis of Stochastic and Hybrid Architectures}
+\label{subsec:stochastic-hybrid-architectures}
+
+The evaluation further examined the efficacy of MDN (Mixture Density Networks) and
+hybrid models. The MDN model alone demonstrated lower aggregate performance than the
+CNN Feature-Only variant. However, the CNN-MDN---a hybrid architecture utilizing a
+convolutional feature extractor with an MDN output layer---achieved the highest
+VUS-PR (Volume Under the Surface - Precision-Recall) scores on the one-year dataset.
+For shorter training intervals, a standard Neural Dense Network with Residual
+Connections (bypass paths to improve gradient flow) proved most effective.
+
+A consistent trend was observed where detection accuracy increased proportionally
+with the volume of available baseline data. Models trained on the one-year slices
+exhibited superior generalization compared to those limited to shorter temporal
+windows.
+
+\subsection{Training Stability and Baseline Comparisons}
+\label{subsec:training-stability-baselines}
+
+The discrepancy between the performance of the CNN-MDN and the standard neural
+network was attributed to the training stability of the probability layers. It was
+determined that the MDN training process is sensitive to initialization and
+requires precise Hyperparameter Tuning---the optimization of a model's internal
+configuration settings---to achieve convergence. While the results on the
+building's main meter indicate that the CNN-MDN is the most effective architecture,
+these findings require critical assessment due to the observed stochastic
+instability on specific sub-meters.
+
+Finally, the evaluation included classical statistical methods, specifically PCA
+(Principal Component Analysis) and Isolation Forest, also sourced from the TSB-AD
+library. These methods yielded the lowest performance scores in the entire
+benchmark. This confirms that linear and tree-based statistical approaches are
+incapable of resolving the complex, non-linear dependencies inherent in multivariate
+building energy telemetry.
+
+Due to its size, the consolidated training history visualization across all meters
+is provided in Appendix~\ref{app:training-history} (Figure~\ref{fig:training-history-all-meters}).
+
+\subsection{Per-category performance on season-matched 3-month baselines}
+
+To reduce confounding effects from seasonal regime shifts, the following analysis
+restricts evaluation to the \textit{3-month, season-matched} baseline configuration.
+This setting is the closest approximation for comparing trainable models and
+time-series foundation models under a shared seasonal context, although a residual
+asymmetry remains: foundation models infer anomalies from a two-week window
+conditioned on up to three months of preceding context, whereas trainable models are
+fitted on the full three-month period (including the two-week slice, where the
+anomalous period is treated as nominal during training). In addition, the plotted
+means are computed over the intersection of runs for which \textit{all} compared
+methods produced valid outputs; therefore, failures or crashes can shift aggregate
+scores through implicit subsampling.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/chronos-vs-cnnmdn.png}
+	\caption{Comparison of Chronos and \texttt{CNN\_\allowbreak MDN} performance under the season-matched three-month baseline configuration.}
+	\label{fig:chronos-vs-cnnmdn}
+\end{figure}
+
+Across anomaly groups, the \texttt{CNN\_\allowbreak MDN} achieves the strongest mean
+VUS-PR on most categories, with the deterministic neural network baseline remaining
+competitive on device-failure, drift, and extended-spike scenarios. Chronos-2
+generally trails the strongest trainable models in this configuration, and
+fine-tuning yields a noticeable improvement primarily for the off-hours anomaly
+group, where it performs comparatively well. PatchTST and OmniAnomaly underperform
+on most categories, while Autoformer exhibits strong performance on spike-like
+anomalies and remains competitive on extended spikes.
+
+\subsection{Seasonal translation sensitivity}
+
+The seasonal translation experiment evaluates how detection performance changes when
+the anomaly window is evaluated against baselines from the same season, one season
+apart, and two seasons apart. As expected, mean VUS-PR degrades as the seasonal
+distance increases, indicating that out-of-season baselines reduce the fidelity of
+the learned normative band. The largest performance drops are observed for
+\texttt{CNN\_\allowbreak MDN} and PatchTST, suggesting limited robustness under
+season shifts. In contrast, Autoformer remains comparatively stable across seasonal
+distances, showing weaker sensitivity to season mismatch in this benchmark.
+Overall, these results align with the broader observation that comparatively simple
+or lightweight architectures can outperform large foundation-model approaches for
+anomaly detection under constrained and domain-shifted conditions.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/sesonal-distance.png}
+	\caption{Seasonal translation sensitivity of mean VUS-PR as a function of seasonal distance between training baseline and evaluation window.}
+	\label{fig:seasonal-distance}
+\end{figure}
+
+\subsection{Model selection rationale}
+
+Although \texttt{CNN\_\allowbreak MDN} attains the highest mean VUS-PR in most
+benchmark configurations, Chronos-2 is selected as the primary deployment model due
+to its fundamentally superior operational characteristics.
+
+All non-foundation approaches evaluated in this study require explicit model
+fitting per meter (or per homogeneous meter cluster). In large-scale building
+portfolios this implies maintaining and retraining millions of individual models,
+introducing substantial engineering overhead, delayed adaptation, and fragile
+retraining pipelines. In addition, these methods require scheduled retraining to
+track distributional drift, typically on sliding windows (e.g., bi-weekly or
+monthly), which further amplifies system complexity.
+
+Chronos-2 operates in a zero-shot regime and adapts online by conditioning its
+inference on the most recent historical context. This removes the need for explicit
+retraining, per-meter model management, and drift-triggered pipeline orchestration.
+As a result, structural changes---such as HVAC retrofits, occupancy regime shifts,
+or equipment replacements---are absorbed immediately into the conditioning context
+without any manual intervention, while trainable models would require explicit
+detection of the regime change, selective retraining on post-change data, and a
+warm-up phase with reduced reliability.
+
+From a systems perspective, Chronos-2 therefore provides a scalable,
+maintenance-minimal and drift-robust solution that remains competitive in detection
+accuracy and operationally superior in large-portfolio deployments. This makes
+Chronos-2 the preferred model for real-world building-scale anomaly detection
+despite \texttt{CNN\_\allowbreak MDN} achieving marginally higher benchmark scores.
+
+Chronos-2 does not explicitly model a multimodal predictive density, in contrast to
+mixture-based approaches such as \texttt{CNN\_\allowbreak MDN}. However, it produces
+direct probabilistic quantile bounds that are not constrained to any parametric
+distributional form. This enables anomaly scoring via distribution-free probability
+integral transform (PIT)–based formulations using predicted quantile envelopes.
+Consequently, Chronos-2 preserves calibrated uncertainty estimates under non-Gaussian
+and heavy-tailed regimes while avoiding the instability and overfitting tendencies
+commonly observed in explicit density mixture models.
+
+

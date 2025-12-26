@@ -129,6 +129,14 @@ The analyzed data is therefore classified as multivariate with multi-mode normal
 	\label{fig:univariate-multivariate-normalities}
 \end{figure}
 
+\subsection{Terminology: Multivariate and Multi-Target Time Series}
+
+Throughout this thesis, the term \emph{multivariate} denotes covariate-conditioned time-series modelling. That is, anomaly detection is performed on a single primary energy meter while explicitly conditioning on multiple exogenous driver variables such as weather, occupancy and calendar information. This formulation reflects the standard analytical view in building-energy modelling, where contextual variables are required to resolve causal ambiguity and to distinguish contextual anomalies from physically normal load variations.
+
+In contrast, some anomaly-detection literature uses the term multivariate to describe joint modelling of multiple sensor channels as simultaneous prediction targets. In order to avoid ambiguity, this thesis refers to such settings as \emph{multi-target} (or multi-sensor) time-series modelling.
+
+Accordingly, all experimental investigations in this work address single-target, covariate-conditioned contextual anomaly detection rather than joint multi-target anomaly detection.
+
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/types-anomalies.jpg}

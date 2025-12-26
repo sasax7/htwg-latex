@@ -1,10 +1,14 @@
 
 \chapter{Related Work}
 \label{chap:state-of-the-art}
+\section{Classical Energy Baseline and Rule-Based Detection}
+Early work on energy anomaly detection in buildings is dominated by deterministic baselines and expert-driven rule systems that encode normative consumption behaviour explicitly. These approaches originate from energy engineering practice and are widely deployed in building management systems due to their transparency and low computational complexity.
 
-The identification of building energy anomalies requires an algorithmic framework that aligns with the structural and physical constraints established in Chapter~\ref{chap:fundamentals}. This chapter examines the current State of the Art (SOTA)---defined as the most advanced level of development in a technical field---to identify the most suitable detection methodology for the multivariate and contextual requirements of the research.
+Pe\~na et al.~\cite{pena2016rule} present a representative rule-based framework for smart buildings in which energy efficiency indicators are derived from HVAC operation and expert knowledge is formalized into a set of anomaly detection rules using data mining techniques. Their system detects predefined inefficiency patterns based on threshold violations and logical conditions applied to multiple sensor streams. While such approaches provide interpretable diagnostics and are well suited for known fault patterns, they rely on static expert rules and lack adaptability to evolving building behaviour, seasonal regime changes, and unseen anomaly types.
 
-Existing research is evaluated through a systematic analysis of established benchmarks. The subsequent sections study these benchmarks to determine which methodologies demonstrate quantifiable results in resolving the complexities of energy consumption signals.
+Regression-based baselining methods constitute another classical detection paradigm. Liu and Nielsen~\cite{liu2016regression} propose an online regression framework for smart-meter anomaly detection in which expected consumption is estimated via supervised learning models and anomalies are detected as residual deviations. These methods enable scalable real-time detection and support streaming deployment; however, they assume relatively stationary consumption baselines and primarily operate on deterministic point forecasts, limiting their robustness under multimodal and non-Gaussian energy distributions.
+
+Overall, classical rule-based and regression-based approaches establish important foundations for energy anomaly detection, but their deterministic formulation and reliance on static baselines restrict their ability to resolve contextual, regime-dependent, and stochastic deviations that characterize modern building-energy telemetry.
 
 \section{Reliability and Benchmarking: The TSB-AD Framework}
 \label{sec:systemic-benchmarking-challenges}
@@ -27,7 +31,7 @@ The ``illusion of progress'' is further attributed to point-wise metrics like \a
 
 \subsection{Benchmark Evaluation and Model Hierarchy}
 
-Evaluation across 1\,070 curated time series reveals that statistical methods like \ac{Sub-PCA} dominate univariate settings, whereas deep learning architectures demonstrate superior modeling capacity in multivariate scenarios (\ac{TSB-AD}-M). As shown in Figure~\ref{fig:benchmark-ranking}, convolutional neural networks (\ac{CNN}) and generative models like \ac{OmniAnomaly} consistently outperform statistical baselines in capturing non-linear dependencies across multiple sensor channels.
+Evaluation across 1\,070 curated time series reveals that statistical methods like \ac{Sub-PCA}~\cite{lu2004sub} dominate univariate settings, whereas deep learning architectures demonstrate superior modeling capacity in multivariate scenarios (\ac{TSB-AD}-M). As shown in Figure~\ref{fig:benchmark-ranking}, convolutional neural networks (\ac{CNN})~\cite{wu2017introduction} and generative models like \ac{OmniAnomaly}~\parencite{su2019robust} consistently outperform statistical baselines in capturing non-linear dependencies across multiple sensor channels~\parencite{su2019robust}.
 
 \begin{figure}[htbp]
 \centering
@@ -41,62 +45,74 @@ Evaluation across 1\,070 curated time series reveals that statistical methods li
 
 While the \ac{TSB-AD} benchmark provides a critical foundation for metric selection, its direct application to building energy telemetry is limited by several domain-specific gaps. The benchmark established that \ac{ML} architectures like \ac{CNN} excel in multivariate dependency modeling, while foundation models demonstrate superior efficacy in point anomaly identification. However, the \ac{TSB-AD}-M partition contains a limited representation of multivariate point anomalies; the majority of its instances consist of sequence-based deviations or global outliers rather than contextual point anomalies.
 
-Furthermore, \textcite{liu2024elephant} primarily evaluated foundation models in univariate contexts, leaving their performance in multivariate environments unexplored. This is partly due to the historical limitation of these models to univariate inputs, a constraint only recently addressed by the emergence of architectures such as \textit{Chronos-2}, which extends universal forecasting to multivariate data~\parencite{ansari2025chronos}.
+Furthermore, \textcite{liu2024elephant} primarily evaluated foundation models in univariate contexts, leaving their performance in multivariate environments unexplored. 
+It is important to note that the term \emph{multivariate} in \textcite{liu2024elephant} refers to joint multi-sensor anomaly detection, whereas in this thesis it denotes covariate-conditioned detection on a single primary meter. Consequently, the benchmark does not cover multivariate contextual anomaly detection in the sense addressed in this work.
 
-For building energy systems, the benchmark lacks specific energy-sector data and does not account for the longitudinal nature of building operations. In real-world scenarios, researchers often have access to multiple years of historical data, which allows for the establishment of robust baselines. Unlike the static snapshots in many benchmarks, building data is subject to slow behavioral drifts (e.g., equipment aging). This necessitates a benchmark setup where models can continuously learn from historical patterns before being evaluated on anomalies. Consequently, while this thesis utilizes \ac{VUS-PR} and the architectural hints provided by \textcite{liu2024elephant}, the experimental design is adapted to leverage long-term historical training and the specific requirements of multivariate contextual detection.
+For building energy systems, the benchmark lacks specific energy-sector data and does not account for the longitudinal nature of building operations. In real-world scenarios, researchers often have access to multiple years of historical data, which allows for the establishment of robust baselines. Unlike the static snapshots in many benchmarks, building data is subject to slow behavioral drifts (e.g., equipment aging). This necessitates a benchmark setup where models can continuously learn from historical patterns before being evaluated on anomalies. Consequently, while this thesis adopts the robust evaluation principles and metric
+recommendations of \textcite{liu2024elephant}, the experimental design is explicitly adapted
+to the requirements of multivariate contextual anomaly detection in longitudinal
+building-energy telemetry, enabling continuous baseline learning under non-stationarity.
 
+\subsection{Large-Scale Supervised Energy Benchmarks: LEAD 1.0}
+\label{subsec:lead-benchmark}
+
+A prominent large-scale benchmark for energy anomaly detection is LEAD~1.0~\cite{gulati2022lead1}, which provides manually annotated hourly electricity consumption data from 1\,413 commercial buildings. Anomalies are labeled based on visually observable deviations from daily and weekly load patterns and include global point anomalies and collective anomalies.
+
+The availability of explicit anomaly labels has enabled supervised classification approaches to achieve extremely high reported detection scores. Recent competition results demonstrate that gradient-boosted tree ensembles combined with extensive change-of-value feature engineering can achieve ROC-AUC values above 0.98 by directly learning the human labeling patterns~\parencite{fu2022lead1stplace}.
+
+However, LEAD~1.0 primarily captures globally visible pattern breaks and does not encode contextual inefficiencies, multivariate causal dependencies, long-term baseline drift, or economic impact semantics. Consequently, supervised models trained on LEAD effectively learn to imitate human visual judgments rather than to detect physically or economically relevant inefficiencies. These properties limit the transferability of LEAD-based detection results to real-world building energy management.
 \section{Comparative Analysis of Deep Learning and Foundation Models in Energy Systems}
 
-The landscape of \ac{TSAD} within energy data has shifted from classical statistical heuristics toward complex \ac{DL} architectures and, more recently, \ac{FM}. While \textcite{morshedi2025dl-iot-ad} provide a comprehensive overview of the efficacy of \ac{CNN}, \ac{LSTM}, and \ac{GAN} in \ac{IoT} environments, the specific requirements of building energy telemetry necessitate a more nuanced evaluation of model topology and predictive mechanisms.
+The landscape of time-series anomaly detection in energy systems has evolved from classical
+statistical heuristics toward complex deep learning architectures and, more recently, time-series
+foundation models. While \textcite{morshedi2025dl-iot-ad} provide a comprehensive survey of
+convolutional, recurrent, and adversarial neural architectures in IoT anomaly detection, the
+specific structural properties of building-energy telemetry impose substantially different modeling
+requirements.
 
 \subsection{Deep Generative Models and the Advantage of Reconstruction}
 
-A critical distinction in building energy research involves the choice between deterministic and generative modeling. \textcite{AZZALINI2025115069} conducted an empirical evaluation of deep autoencoders, demonstrating that \ac{LSTM}-based architectures generally outperform convolutional variants due to their ability to capture long-range temporal dependencies in sequential meter data.
+A central methodological distinction in building-energy research lies between deterministic
+forecasting models and probabilistic generative models. \textcite{AZZALINI2025115069} demonstrate
+that recurrent autoencoder architectures consistently outperform convolutional variants due to
+their ability to capture long-range temporal dependencies in sequential meter data.
 
-A significant finding in this context is the superiority of \ac{RP} over simple \ac{RE}. In \ac{VAE} frameworks, \ac{RP} accounts for the variability of the reconstruction by utilizing the learned variance, which makes the model more robust against the inherent noise of building systems. This aligns with the architecture of \ac{OmniAnomaly}, a deep generative model that leverages stochastic recurrent neural networks to capture the normal patterns of multivariate data through robust latent representations~\parencite{su2019robust}.
+Within variational autoencoder frameworks, reconstruction probability (RP) has been shown to
+outperform simple reconstruction error (RE) by explicitly accounting for reconstruction variance,
+thereby increasing robustness against stochastic fluctuations inherent to building operations.
+This modeling principle underlies generative architectures such as OmniAnomaly, which employ
+stochastic recurrent neural networks to learn latent representations of multivariate building
+telemetry and to characterize normal operational behavior probabilistically~\parencite{su2019robust}.
 
-\subsection{The Emergence of Time-Series Foundation Models}
+\subsection{Time-Series Foundation Models in the Energy Domain}
 
-The applicability of generalized models to the energy domain remains a primary research gap. \textcite{hela2025tsfm-energy-ad} investigated the performance of \ac{TSFM} such as \textit{TimeGPT} and \textit{MOMENT}, finding that while \ac{FM} demonstrate strong zero-shot capabilities for point anomalies, they often struggle with the domain-specific complexities of energy systems without proper adaptation.
+Time-series foundation models introduce a paradigm shift by enabling zero-shot and few-shot
+generalization across heterogeneous datasets. \textcite{hela2025tsfm-energy-ad} evaluate foundation
+models such as TimeGPT~\parencite{garza2023timegpt} and MOMENT~\parencite{goswami2024moment} on the LEAD~1.0 benchmark, showing that these models exhibit
+strong zero-shot capabilities for detecting globally visible point anomalies in building-energy
+time series.
 
-However, the recent emergence of architectures capable of handling multivariate dependencies, such as \textit{Chronos-2}, suggests that the limitations observed in earlier benchmarks may be overcome~\parencite{ansari2025chronos}. These models utilize a ``universal forecasting'' approach that treats multivariate signals as tokens, allowing the model to learn cross-channel correlations that are essential for identifying context-based deviations in building energy consumption.
+However, benchmark results further indicate that compact generative architectures may outperform
+foundation models in forecasting-residual-based anomaly detection tasks. Specifically, variational
+autoencoders trained from scratch surpass large foundation models such as MOMENT~\parencite{goswami2024moment} on LEAD~1.0,
+while \textcite{liu2024elephant} similarly report dominance of lightweight statistical and neural
+architectures in benchmark-driven TSAD competitions.
 
-\subsection{Synthesis: Prediction-Based Stochastic Modeling}
+Crucially, these findings are confined to deterministic forecasting-residual paradigms and
+snapshot-based benchmark formulations. Existing benchmarks primarily encode globally visible or
+subsequence-based anomalies and evaluate models under unimodal Gaussian residual assumptions.
+They do not represent multivariate contextual inefficiencies, regime-dependent multimodality,
+long-term baseline drift, or probabilistic deviation semantics that characterize real-world building
+energy telemetry.
 
-A synthesis of current literature reveals a converging trend toward prediction-based methodologies as the primary solution for multivariate context point anomalies in building energy data (see Section~\ref{subsec:taxonomy-detection-methods}). While reported results remain susceptible to the data-level deficiencies and biased metrics identified in Section~\ref{subsec:data-deficiencies}, the scientific consensus points toward a transition from deterministic modeling to stochastically adjusted prediction. It was shown through the findings of \textcite{AZZALINI2025115069}, \textcite{su2019robust}, and \textcite{ansari2025chronos} that robust results are achieved when a model outputs a probability distribution rather than a single point value.
+This work therefore departs from the conventional residual-based anomaly detection formulation by
+treating building-energy anomaly detection as probabilistic deviation from a contextual multivariate
+baseline. In this regime, foundation models capable of native distributional forecasting—such as
+Chronos-2—provide architectural capabilities that enable explicit modeling of regime-dependent
+mixture densities, which are structurally required to represent the multimodal operational states
+of buildings.
 
-This development is consistent with the established physical nature of building telemetry. As described in Section~\ref{subsec:statistical-distribution-stochastic-noise}, energy signals are inherently stochastic, characterized by non-normal mixture distributions and multimodal profiles that originate from the interaction of discrete system states and irregular human behavior. Because traditional mean-based detection is ineffective for such data, the prediction model must inherently mimic these stochastic properties to establish a reliable normative baseline.
 
-While advanced \ac{FM} and generative models define the current frontier of this stochastic approach, standard \ac{ML} architectures---specifically \ac{CNN} variants---maintain a vital role in the field due to their verified capacity to model non-linear spatial dependencies across multiple sensor channels. Conversely, while simple statistical methods remain valuable for validation, they lack the complexity required to resolve context-dependent deviations within the multi-year historical datasets utilized in this research. This project, therefore, prioritizes architectures that utilize stochastic prediction logic. Whether implemented via the multivariate forecasting of \textit{Chronos-2} or the deep generative reconstruction of \ac{OmniAnomaly}, the integration of probability distributions remains the verified standard for resolving the complexities of building energy telemetry.
+\subsection{Synthesis of Related Work}
 
-\section{TODO: Mixture Density Networks for Stochastic Modeling}
-
-This section will introduce Mixture Density Networks (MDN) as a mechanism for producing probabilistic outputs in anomaly detection. It will summarize the original MDN formulation, discuss how a \ac{CNN} feature extractor can be combined with an MDN output head to model multimodal distributions in building energy data, and position this approach relative to existing generative models such as \ac{VAE} and \ac{OmniAnomaly}.
-
-\section{TODO: Root Cause Analysis for Anomaly Detection}
-
-This section will review existing approaches to anomaly diagnosis and root cause analysis in time series systems. It will cover methods for attributing detected anomalies to specific sensors or subsystems, discuss graph- or topology-based RCA in building management, and examine how anomaly scores can be translated into operational and financial impact for facility managers.
-
-\section{Identification of Research Gaps}
-
-The current state of the art, summarized by the findings of \textcite{liu2024elephant}, reveals that existing benchmarks and models are insufficient for the specific requirements of building energy telemetry. The subsequent sections identify the primary gaps that inform the methodology developed in this research.
-
-\subsection{Representation Gap in Multivariate Context Point Anomalies}
-
-A primary deficiency in existing benchmark datasets is the lack of specific representation for Multivariate Context Point Anomalies (MCPA). Most established benchmarks focus predominantly on sequence anomalies or global outliers, leaving the interaction of multivariate context point deviations under-explored. Furthermore, existing archives often lack authentic energy consumption data, utilizing synthetic or unrelated \ac{IoT} datasets that do not exhibit the multimodal and stochastic characteristics inherent to building telemetry.
-
-\subsection{Temporal Baseline and Generalization Gap}
-
-The relationship between training data length and model performance in non-stationary building environments is currently not well-documented. Because building behavior evolves over time due to equipment degradation and seasonal shifts, it remains unclear how models trained on short-term baseline periods, such as two weeks, compare to those utilizing long-term historical data of one year or more. Additionally, there is a lack of empirical evidence regarding the seasonal translation capability of models. Specifically, it has not been sufficiently proven whether a model trained exclusively on winter heating cycles can accurately identify anomalies during summer cooling cycles without generating excessive false positives.
-
-\subsection{Architectural Gap in Stochastic Mixture Modeling}
-
-While \ac{TSFM} have shown quantifiable results in univariate forecasting, their application to multivariate energy anomaly detection represents a very recent development. The emergence of \textit{Chronos-2} provides a technical opportunity to evaluate universal forecasting on multivariate building data. However, a significant gap remains in combining the spatial feature extraction capacity of \ac{CNN} architectures with a stochastic output head. By integrating \ac{CNN} variants with Mixture Density Networks (MDN), a model could output a probability distribution instead of a deterministic point value, which would align more closely with the multimodal nature of building energy data.
-
-\subsection{Diagnostic and Economic Functional Gap}
-
-The majority of current research in \ac{TSAD} terminates at the detection phase, providing binary or continuous anomaly scores without further diagnostic depth. In building management, an alert without context is of limited operational utility. A critical gap exists in the automated identification of the root cause, which refers to the specific sensor or subsystem responsible for the deviation. Furthermore, there is a lack of integrated frameworks that translate detected energy waste into financial impact, defined as the monetary loss incurred by the anomaly over a specific time interval.
-
-\section{Synthesis of Research Objectives}
-
-The objective of this research is to fill these identified gaps by developing a custom benchmark tailored to building energy telemetry. By utilizing the \ac{VUS-PR} metric as the evaluative standard, the methodology focuses on the detection of multivariate context point anomalies across varying training baseline lengths. The proposed approach integrates the spatial modeling success of \ac{CNN} architectures with stochastic mixture density outputs and evaluates the multivariate capabilities of \textit{Chronos-2}. Ultimately, the framework aims to extend the detection pipeline into automated root cause analysis and financial impact quantification to provide actionable insights for building operations.
+The review of established methodologies demonstrates a technical transition from deterministic expert systems toward probabilistic deep learning architectures. Classical rule-based frameworks and regression-based baselining provide high interpretability and low computational complexity but exhibit restricted adaptability to the non-stationary and multimodal characteristics of building telemetry. The assessment of current methodologies is frequently compromised by systemic flaws in existing benchmarks, including mislabeling and biased evaluation metrics such as PA-F1. To resolve these deficiencies, recent research emphasizes robust evaluation standards like VUS-PR and the utilization of deep generative models such as OmniAnomaly. While large-scale supervised datasets like LEAD 1.0 enable high detection scores, they primarily reflect human visual judgments rather than contextual inefficiencies or multivariate causal dependencies. Foundation models such as Chronos-2 offer zero-shot generalization and the capacity for distributional forecasting, yet their application to multivariate contextual detection remains a significant research gap. Consequently, this work departs from conventional deterministic residuals in favor of a probabilistic formulation that explicitly models regime-dependent mixture densities to bridge the identified gap between technical detection and operational remediation.
