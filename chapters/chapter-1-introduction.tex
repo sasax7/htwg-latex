@@ -15,31 +15,36 @@ The implementation of \ac{AMI}, which combines smart meters with communication n
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.9\textwidth]{images/Global-Smart-Electricity-Meter-Adoption-2024-by-Region-vweb.png}
-	\caption{Global smart electricity meter adoption by region in 2024, illustrating the varying levels of AMI penetration across markets~\cite{iotanalytics2024smartmeters}.}
+	\caption{Global smart electricity meter adoption by region in 2024, illustrating the varying levels of \ac{AMI} penetration across markets~\cite{iotanalytics2024smartmeters}.}
 	\label{fig:global-smart-meter-adoption}
 \end{figure}
 
 \section{Why Current Building Automation Systems Fail}
 
-Most deployed Building Automation Systems (BAS) rely on static rule-based logic and univariate statistical thresholds applied to individual sensor streams. Such approaches are structurally incapable of capturing the multivariate, context-dependent nature of building-energy behaviour and are therefore unable to distinguish between legitimate operational regime changes and true anomalous states.
+Most deployed \ac{BAS} rely on static rule-based logic and univariate statistical thresholds applied to individual sensor streams. Such approaches are structurally incapable of capturing the multivariate, context-dependent nature of building-energy behaviour and are therefore unable to distinguish between legitimate operational regime changes and true anomalous states.
 
-More recent data-driven and machine-learning-based detection methods exhibit fundamental limitations. Many approaches operate on deterministic point predictions that fail to represent the stochastic, multimodal, and non-stationary characteristics of building-energy time series. As a result, these models impose context-agnostic deviation boundaries that treat identical absolute residuals as equally anomalous across fundamentally different operational regimes, leading to structurally incorrect anomaly semantics.
+More recent data-driven and machine-learning-based detection methods exhibit fundamental limitations, particularly the sequential-forecasting failure modes analyzed in Section~\ref{sec:critique-sequential}. Many approaches operate on deterministic point predictions that fail to represent the stochastic, multimodal, and non-stationary characteristics detailed in Section~\ref{sec:building-energy-data} and empirically dissected in Sections~\ref{sec:statistical-limitations} and~\ref{sec:mdn-anomaly-scoring}. As a result, these models impose context-agnostic deviation boundaries that treat identical absolute residuals as equally anomalous across fundamentally different operational regimes, leading to structurally incorrect anomaly semantics, as demonstrated in Section~\ref{sec:statistical-limitations}.
 
-Sequential forecasting-based detectors further suffer from two critical failure modes when applied to sustained anomalies: (i) error propagation, where anomalous values corrupt the sliding input window and destabilize future predictions, and (ii) rapid baseline adaptation, where models quickly absorb anomalous states as normal operation, causing long-duration anomalies to disappear from the anomaly score signal :contentReference[oaicite:1]{index=1}. These effects undermine both detection reliability and financial loss quantification.
+Sequential forecasting-based detectors further suffer from two critical failure modes when applied to sustained anomalies:
+\begin{enumerate}
+	\item error propagation, where anomalous values corrupt the sliding input window and destabilize future predictions, as analyzed in Section~\ref{sec:failure-mode-1};
+	\item rapid baseline adaptation, where models quickly absorb anomalous states as normal operation, causing long-duration anomalies to disappear from the anomaly score signal, as detailed in Section~\ref{sec:failure-mode-2}.
+\end{enumerate}
+These effects undermine both detection reliability and financial loss quantification.
 
-Furthermore, the majority of published anomaly-detection benchmarks rely on inadequately annotated datasets, implicit anomaly assumptions, and global point-anomaly definitions that can be captured by trivial threshold rules but fail to represent contextual and multivariate operational anomalies. These limitations significantly reduce the transferability of reported performance to real-world building operation.
+Furthermore, the majority of published anomaly-detection benchmarks rely on inadequately annotated datasets, implicit anomaly assumptions, and global point-anomaly definitions that can be captured by trivial threshold rules but fail to represent contextual and multivariate operational anomalies, as detailed in Section~\ref{sec:systemic-benchmarking-challenges}. These limitations significantly reduce the transferability of reported performance to real-world building operation.
 
 Finally, existing systems rarely provide automated root-cause attribution or translate detected deviations into quantifiable financial impact, thereby limiting their practical value for operational decision-making and maintenance prioritization.
 
 \section{Emergence of Foundation Models for Time Series}
 
-The emergence of \ac{TSFM}, such as Chronos-2~\cite{ansari2025chronos}, marks a new paradigm in building-energy analytics. These models are designed to process multivariate, non-stationary, and stochastic data and provide probabilistic output distributions instead of single-value predictions. This enables the construction of normative operational bands that capture multimodal building behaviour and allow contextual deviations to be distinguished from normal variability.
+The emergence of \ac{TSFM}, such as Chronos-2~\cite{ansari2025chronos}, marks a new paradigm in building-energy analytics. These models are designed to process multivariate, non-stationary, and stochastic data and provide probabilistic output distributions instead of single-value predictions. This enables the construction of normative operational bands that capture multimodal building behaviour and allow contextual deviations to be distinguished from normal variability, and Section~\ref{sec:ts-foundation-models} details how these models integrate into the proposed methodology.
 
-A key advantage of foundation models is their zero-shot generalization capability. In contrast to asset-specific forecasting models, TSFMs do not require per-meter training or frequent retraining. Multivariate building telemetry can be provided directly as contextual input, while optional fine-tuning can be performed jointly across entire building portfolios. This makes foundation models particularly well suited to the inherently non-stationary nature of building-energy data and enables scalable deployment across large building estates.
+A key advantage of foundation models is their zero-shot generalization capability. In contrast to asset-specific forecasting models, \ac{TSFM}s do not require per-meter training or frequent retraining. Multivariate building telemetry can be provided directly as contextual input, while optional fine-tuning can be performed jointly across entire building portfolios. This makes foundation models particularly well suited to the inherently non-stationary nature of building-energy data and enables scalable deployment across large building estates.
 
 \section{System Context and Industrial Relevance}
 
-This research is conducted in the context of the Eliona IoT Building Management Platform (see Section~\ref{sec:eliona-system-context}), a production-grade multi-tenant system deployed in commercial and industrial building portfolios worldwide. Eliona integrates heterogeneous building automation systems, smart meters, and environmental sensors into a unified telemetry and analytics layer.
+This research is conducted in the context of the Eliona IoT Building Management Platform~\cite{ElionaWebsite} (see Section~\ref{sec:eliona-system-context}), a production-grade multi-tenant system deployed in commercial and industrial building portfolios worldwide. Eliona integrates heterogeneous building automation systems, smart meters, and environmental sensors into a unified telemetry and analytics layer.
 
 The anomaly-detection framework developed in this thesis is not a laboratory prototype, but a fully integrated subsystem within Eliona’s operational architecture. It processes live building telemetry, performs stochastic anomaly detection, quantifies financial impact, localizes probable root causes, and exposes actionable insights through a production-ready frontend used by facility managers and energy operators.
 
@@ -61,7 +66,7 @@ The primary contributions of this thesis are:
   \item A stochastic detection framework based on probabilistic normative bands derived from foundation models.
   \item A financially interpretable quantification layer that transforms deviations into monetary loss estimates.
   \item A hierarchical root-cause attribution pipeline grounded in building ontologies and causal dependencies.
-  	\item A domain-specific multivariate benchmark dataset generated via \ac{BOPTEST} with labeled contextual fault scenarios (see Section~\ref{sec:boptest-benchmark}).
+	\item A domain-specific multivariate benchmark dataset generated via \ac{BOPTEST} with labeled contextual fault scenarios (see Section~\ref{sec:benchmark-design}).
   	\item A fully integrated, scalable, multi-tenant implementation deployed within a production IoT building platform.
   	\item A methodological foundation for the development of a universal energy foundation model supporting zero-shot anomaly detection and standardized baseline comparison in accordance with the \ac{IPMVP}.
 \end{itemize}

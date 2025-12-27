@@ -1,10 +1,28 @@
 \chapter*{Abstract}
 \setheader{Abstract}
 
-Buildings account for approximately 30\% of global final energy consumption, while empirical studies estimate that between 4\% and 18\% of building energy use is attributable to anomalies such as technical faults, control and scheduling errors, and behaviour-induced energy misuse, which result in avoidable operational inefficiencies.
+Buildings account for approximately 30\% of global final energy consumption.
+Empirical studies indicate that 4\%–18\% of this demand is attributable to operational
+anomalies such as technical faults, control and scheduling errors, and behavioural
+misuse, resulting in substantial avoidable energy waste.
 
-This thesis presents an integrated methodology for contextual anomaly detection in multivariate, non-stationary building-energy time series, enabling financial-impact estimation and automated root-cause attribution. The approach is fully implemented within an existing IoT building-management platform and includes a production-ready frontend for anomaly visualization and operational analysis.
+This thesis proposes a probabilistic methodology for contextual anomaly detection in
+multivariate, non-stationary building-energy time series. The approach enables
+distribution-aware financial impact quantification and hierarchical root-cause
+localization and is fully realized within a production multi-tenant IoT building
+management platform.
 
-To address structural limitations of existing anomaly-detection benchmarks for building-energy data, a dedicated evaluation dataset was constructed using the BOPTEST simulation environment, comprising a clean baseline and systematically injected multivariate, context-dependent anomaly scenarios. Multiple detection methods, including statistical, deep-learning, and foundation-model-based approaches, were evaluated on this benchmark.
+A dedicated benchmark dataset is constructed using the BOPTEST simulation environment,
+providing clean baselines and systematically injected multivariate anomaly scenarios.
+Statistical, deep-learning, and foundation-model-based methods are evaluated under
+realistic deployment constraints.
 
-The results indicate that stochastic prediction models with probabilistic output distributions are more suitable than deterministic point predictors for modelling multimodal building-energy behaviour and identifying contextual anomalies. Chronos-2 enables the practical application of time-series foundation models to multivariate energy telemetry without per-asset training, while mixture-density modelling was identified as a promising architectural direction for future research. The findings establish a methodological basis for a universal energy foundation model supporting zero-shot anomaly detection and standardized baseline comparison in accordance with IPMVP.
+Results demonstrate that sequential point-forecasting approaches are structurally
+unsuitable for anomaly detection, while stochastic probabilistic
+models significantly outperform deterministic predictors in multimodal operating
+regimes. Chronos-2 enables zero-shot portfolio-scale anomaly detection and absorbs
+baseline shifts without retraining. Mixture density modeling is identified as a
+promising foundation-model architecture, and distribution-aware quantile scoring is
+shown to be critical for robust anomaly quantification. The findings establish a methodological
+basis for a universal energy foundation model supporting zero-shot anomaly detection
+and standardized baseline comparison in accordance with IPMVP.

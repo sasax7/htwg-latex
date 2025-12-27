@@ -399,13 +399,13 @@
 
         %% Create the titel text box.
         \node at (14.5mm,-174.5mm)[anchor=north west, fill=htwg-dark-blue]{
-            \begin{minipage}[t]{145mm}
+            \begin{minipage}[t]{160mm}
                 \begin{flushleft}
                     %% Print Report Type Text
-                    \color{htwg-white}\Huge\textbf{\@report@typetext}
+                    \color{htwg-white}\huge\textbf{\@report@typetext}
                     \\
                     %% Print Report Title
-                    \color{htwg-white}\Huge{\@title}
+                    \color{htwg-white}\huge{\@title}
                 \end{flushleft}
             \end{minipage}
         };
