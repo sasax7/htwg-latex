@@ -4,3 +4,4 @@ in benchmark there is no destinction between context and global point anomalies.
 
 im benchmark multivariate anomalies dont focus on one of the signals and having the others as features they focus on all at the same time so their deffiniton what is multivariate is verry different from ours
 
+mention rule based in conclusion

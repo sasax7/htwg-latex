@@ -9,7 +9,7 @@ The implementation utilizes a polyglot approach to leverage the specific strengt
 
 \subsection{Deployment and Cluster Integration}
 
-The system is designed as a modular Docker container that operates within the same Azure Kubernetes Services (AKS) cluster as the core Eliona microservices. This co-location ensures low-latency communication between the detection logic and the primary data storage. The architecture remains environment-agnostic; for on-premise deployments, the entire stack, including the analytics endpoint, can be executed locally as a suite of interconnected containers.
+The system is designed as a modular Docker container that operates within the same \ac{AKS} cluster as the core Eliona microservices. This co-location ensures low-latency communication between the detection logic and the primary data storage. The architecture remains environment-agnostic, for on-premise deployments, the entire stack, including the analytics endpoint, can be executed locally as a suite of interconnected containers.
 
 \begin{figure}[htbp]
 	\centering
@@ -24,7 +24,7 @@ The microservice establishes a closed-loop data pipeline with the Eliona backend
 
 \begin{description}
 	\item[Ingestion] Telemetry data is retrieved directly from the centralized PostgreSQL/TimescaleDB instance.
-	\item[Analytics loop] After performing data preparation, the microservice transmits multivariate tensors to the method endpoint.
+	\item[Analytics loop] After performing data preparation, the microservice transmits a request to the method endpoint.
 	\item[Synthesis and storage] If the returned predictions indicate a deviation, the service creates an anomaly object. These objects are persisted in the database, where they become accessible to the Eliona frontend via API~V1 for visualization and reporting.
 \end{description}
 

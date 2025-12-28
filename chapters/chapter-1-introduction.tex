@@ -23,7 +23,7 @@ The implementation of \ac{AMI}, which combines smart meters with communication n
 
 Most deployed \ac{BAS} rely on static rule-based logic and univariate statistical thresholds applied to individual sensor streams. Such approaches are structurally incapable of capturing the multivariate, context-dependent nature of building-energy behaviour and are therefore unable to distinguish between legitimate operational regime changes and true anomalous states.
 
-More recent data-driven and machine-learning-based detection methods exhibit fundamental limitations, particularly the sequential-forecasting failure modes analyzed in Section~\ref{sec:critique-sequential}. Many approaches operate on deterministic point predictions that fail to represent the stochastic, multimodal, and non-stationary characteristics detailed in Section~\ref{sec:building-energy-data} and empirically dissected in Sections~\ref{sec:statistical-limitations} and~\ref{sec:mdn-anomaly-scoring}. As a result, these models impose context-agnostic deviation boundaries that treat identical absolute residuals as equally anomalous across fundamentally different operational regimes, leading to structurally incorrect anomaly semantics, as demonstrated in Section~\ref{sec:statistical-limitations}.
+More recent data-driven and machine-learning-based detection methods exhibit fundamental limitations, particularly the sequential-forecasting failure modes analyzed in Section~\ref{sec:critique-sequential}. Many approaches operate on deterministic point predictions that fail to represent the stochastic, multimodal, and non-stationary characteristics detailed in Section~\ref{sec:building-energy-data} and empirically dissected in Sections~\ref{sec:statistical-limitations} and~\ref{sec:md-anomaly-scoring}. As a result, these models impose context-agnostic deviation boundaries that treat identical absolute residuals as equally anomalous across fundamentally different operational regimes, leading to structurally incorrect anomaly semantics, as demonstrated in Section~\ref{sec:statistical-limitations}.
 
 Sequential forecasting-based detectors further suffer from two critical failure modes when applied to sustained anomalies:
 \begin{enumerate}
@@ -38,7 +38,10 @@ Finally, existing systems rarely provide automated root-cause attribution or tra
 
 \section{Emergence of Foundation Models for Time Series}
 
-The emergence of \ac{TSFM}, such as Chronos-2~\cite{ansari2025chronos}, marks a new paradigm in building-energy analytics. These models are designed to process multivariate, non-stationary, and stochastic data and provide probabilistic output distributions instead of single-value predictions. This enables the construction of normative operational bands that capture multimodal building behaviour and allow contextual deviations to be distinguished from normal variability, and Section~\ref{sec:ts-foundation-models} details how these models integrate into the proposed methodology.
+extual deviations to be distinguisheextual deviations to be distinguisheThe emergence of \ac{TSFM}, such as Chronos-2~\cite{ansari2025chronos}, marks a new paradigm in building-energy analytics. These models are designed to process multivariate, non-stationary, and stochastic data and provide probabilistic output distributions instead of single-value predictions. This enables the construction of normative operational bands that capture multimodal
+building behaviour and distinguish contextual deviations from normal variability.
+The integration of \ac{TSFM} into the proposed pipeline is detailed in
+Section~\ref{sec:ts-foundation-models}.
 
 A key advantage of foundation models is their zero-shot generalization capability. In contrast to asset-specific forecasting models, \ac{TSFM}s do not require per-meter training or frequent retraining. Multivariate building telemetry can be provided directly as contextual input, while optional fine-tuning can be performed jointly across entire building portfolios. This makes foundation models particularly well suited to the inherently non-stationary nature of building-energy data and enables scalable deployment across large building estates.
 
@@ -51,24 +54,71 @@ The anomaly-detection framework developed in this thesis is not a laboratory pro
 This real-world deployment context defines both the functional requirements and the architectural constraints of the proposed methodology, including scalability, robustness to missing data, non-stationary baselines, explainability, and economic interpretability.
 
 \section{Problem Scope and Research Contributions}
+\label{sec:scope-contributions}
 
-This thesis addresses the problem of detecting, economically quantifying, and diagnostically localizing contextual anomalies in multivariate building-energy time series within large-scale, non-stationary operational environments.
+This thesis addresses the problem of detecting, economically quantifying, and
+diagnostically localizing contextual anomalies in multivariate building-energy time
+series under large-scale, non-stationary operating conditions.
 
-In contrast to traditional threshold-based and deterministic forecasting approaches, this work formulates anomaly detection as a stochastic, multivariate, context-dependent modeling problem. The objective is the design and implementation of an integrated, production-ready anomaly intelligence system that not only detects deviations, but also explains their technical origin, quantifies their economic impact, and derives operationally meaningful recommendations.
+In contrast to threshold-based monitoring and deterministic forecasting-based
+detectors, anomaly detection is formulated as a stochastic, multivariate, and
+context-dependent modeling problem. The objective is the design and implementation of
+an integrated, production-ready anomaly intelligence system that not only detects
+deviations, but also quantifies their financial impact, localizes probable root causes
+within building hierarchies, and synthesizes operationally meaningful recommendations.
 
-The proposed framework models expected building-energy behaviour as a multivariate, multimodal mixture distribution, allowing deviations to be evaluated probabilistically rather than against static thresholds. This formulation explicitly accounts for non-stationary baselines caused by seasonal shifts, occupancy changes, and long-term system drift, preventing legitimate regime transitions from being misclassified as anomalies. Methodologically, the work focuses on detecting \ac{MCPA} and translating them into financially interpretable metrics.
+Methodologically, the work targets \ac{MCPA} under multimodality and non-stationarity,
+thereby enabling probabilistic deviation semantics and economically interpretable
+scoring (see Sections~\ref{sec:statistical-limitations} and~\ref{sec:md-anomaly-scoring}).
 
 The primary contributions of this thesis are:
-
 \begin{itemize}
-  \item A formalization of building-energy anomaly detection as multivariate contextual point anomaly detection under multimodality and non-stationarity.
-  \item An empirical and theoretical critique of deterministic forecasting-based anomaly detectors and their structural failure modes.
-  \item A stochastic detection framework based on probabilistic normative bands derived from foundation models.
-  \item A financially interpretable quantification layer that transforms deviations into monetary loss estimates.
-  \item A hierarchical root-cause attribution pipeline grounded in building ontologies and causal dependencies.
-	\item A domain-specific multivariate benchmark dataset generated via \ac{BOPTEST} with labeled contextual fault scenarios (see Section~\ref{sec:benchmark-design}).
-  	\item A fully integrated, scalable, multi-tenant implementation deployed within a production IoT building platform.
-  	\item A methodological foundation for the development of a universal energy foundation model supporting zero-shot anomaly detection and standardized baseline comparison in accordance with the \ac{IPMVP}.
+  \item A formalization of building-energy anomaly detection as multivariate contextual
+  point anomaly detection under multimodality and non-stationarity (see
+  Sections~\ref{sec:building-energy-data} and~\ref{sec:statistical-limitations}).
+
+  \item An empirical and theoretical critique of deterministic sequential
+  forecasting-based anomaly detectors and their structural failure modes (see
+  Section~\ref{sec:critique-sequential} and
+  Sections~\ref{sec:failure-mode-1}--\ref{sec:failure-mode-2}).
+
+  \item A stochastic detection framework based on probabilistic normative bands derived
+  from time-series foundation models, enabling contextual anomaly scoring (see
+  Section~\ref{sec:ts-foundation-models}).
+
+  \item A distribution-aware anomaly scoring formulation for mixture-density outputs,
+  including PIT- and density--quantile (DQ) based scoring and severity scaling for
+  robust quantification under multimodality (see Section~\ref{sec:md-anomaly-scoring}).
+
+  \item A financially interpretable quantification layer that transforms deviations
+  into conservative monetary impact estimates (see Section~\ref{sec:financial-impact}).
+
+  \item A hierarchical root-cause attribution pipeline grounded in building ontologies,
+  including aggregation by asset type and action synthesis (see
+  Section~\ref{sec:root-cause-analysis}).
+
+  \item A domain-specific multivariate benchmark dataset generated via \ac{BOPTEST} with
+  labeled contextual fault scenarios and controlled seasonal segmentation (see
+  Section~\ref{sec:benchmark-design}).
+
+  \item A critical evaluation protocol with explicit discussion of training stability,
+  coverage bias, and comparability constraints between trainable models and foundation
+  models (see Section~\ref{sec:benchmark-limitations}).
+
+  \item A fully integrated, scalable, multi-tenant implementation deployed within a
+  production IoT building platform, including human-in-the-loop validation mechanisms
+  to prevent baseline contamination and multi-resolution persistence handling (see
+  Chapter~\ref{chap:implementation}).
+
+  \item A methodological basis for standardized, \ac{IPMVP}-aligned baseline comparison
+  and future universal energy foundation models supporting zero-shot anomaly detection
+  at portfolio scale (see Section~\ref{chap:discussion-future}).
 \end{itemize}
 
-This work assumes that the historical baseline used for model context represents nominal building operation. The framework is therefore designed to detect deviations emerging after baseline establishment and does not aim to retroactively identify faults that were already persistently present in historical reference data. Furthermore, the scope is limited to aggregated building-energy telemetry and does not target high-frequency electrical fault detection, equipment-level vibration analysis, or cybersecurity intrusion detection.
+This work assumes that the historical baseline used for model context represents
+nominal building operation. The framework is therefore designed to detect deviations
+emerging after baseline establishment and does not aim to retroactively identify
+faults that were already persistently present in historical reference data. Furthermore,
+the scope is limited to aggregated building-energy telemetry and does not target
+high-frequency electrical fault detection, equipment-level vibration analysis, or
+cybersecurity intrusion detection.

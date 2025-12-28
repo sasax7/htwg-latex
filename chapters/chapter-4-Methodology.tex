@@ -10,33 +10,31 @@ building portfolios.
 \section{System Context: The Eliona IoT Platform}
 \label{sec:eliona-system-context}
 
-The anomaly detection system is integrated into the Eliona IoT Platform, which serves as the operational environment for data ingestion, storage, and visualization\parencite{ElionaAssets,ElionaStructuringAssets}. The platform is designed to be deployment-agnostic, operating primarily as a high-scale, Azure-based Cloud environment while preserving on-premise capability for local installations. This flexibility allows the same anomaly detection logic to be applied consistently across multiple tenants and deployment models.
+The anomaly detection system is integrated into the Eliona \ac{IoT} Platform, which serves as the operational environment for data ingestion, storage, and visualization\parencite{ElionaWebsite}. The platform is designed to be deployment-agnostic, operating primarily as a high-scale, Azure-based Cloud environment while preserving on-premise capability for local installations. This flexibility allows the same anomaly detection logic to be applied consistently across multiple tenants and deployment models.
 
 \subsection{Modular System Architecture}
 
-The platform is implemented as a multi-tenant system supporting simultaneous operation
-of independent building portfolios within a shared infrastructure. All computational
-services, storage layers, and frontend applications operate in a logically isolated but
-physically shared architecture.
+Figure~\ref{fig:eliona-architecture} summarizes the platform architecture. Eliona is a
+multi-tenant system in which multiple building portfolios share infrastructure while
+tenant data and configurations remain logically isolated.
 
-The system follows a two-layer design consisting of a backend service layer and a
-frontend application layer. The backend encapsulates all persistence, processing, and
-integration services and exposes a unified API to the frontend.
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{images/eliona-layers.jpg}
+	\caption{Layered architecture of the Eliona platform, from protocol ingestion to analytics and user interaction. Source: Eliona documentation\parencite{ElionaConnectivityConnectDevices}.}
+	\label{fig:eliona-architecture}
+\end{figure}
 
+The stack comprises three layers:
 \begin{description}
-    \item[Backend Layer]
-    The backend acts as the centralized processing and persistence hub. It manages
-    asset registration, authentication, and data ingestion, hosts the Rule Engine for
-    automated processing, and coordinates specialized microservices for forecasting,
-    anomaly detection, and diagnostics\parencite{ElionaRuleChains,ElionaRules}. All
-    time-series and metadata are stored in a shared PostgreSQL instance extended with
-    TimescaleDB hypertables, enforcing strict logical tenant isolation while enabling
-    centralized resource management and horizontal scalability.
+	\item[Data Gateway]
+	Terminates heterogeneous building and IoT protocols (e.g., BACnet, MQTT, OPC UA, REST, Modbus) and forwards normalized telemetry to the platform via secure transport (HTTPS/MQTT).
 
-    \item[Frontend Layer]
-    The frontend provides the primary user interface for all tenants. It exposes
-    dashboards, maps, reports, and analytics for monitoring energy behavior and
-    interacting with the results produced by backend services.
+	\item[Backend]
+	Provides the central service and persistence layer, implemented as a set of microservices for tenant and asset management, authentication and authorization, ingestion, rule-based automation, and analytics orchestration\parencite{ElionaRuleChains,ElionaRules}. Data are persisted in a shared database with strict tenant scoping and exposed through a unified API.
+
+	\item[Frontend]
+	Consumes this API and provides role-aware user workflows for portfolio navigation, asset-hierarchy exploration, dashboarding and digital twins, and investigation of alarms and anomalies and much more.
 \end{description}
 
 \subsection{Asset Modeling and Hierarchical Ontology}
@@ -54,9 +52,9 @@ instantiated from reusable templates and organized into complementary hierarchie
     ensuring consistent metadata across tenants and sites.
 
     \item[Dual Hierarchies]
-    Assets are organized into two orthogonal trees. The \emph{Local Tree} represents
+    Assets are organized into two orthogonal trees. The {Local Tree} represents
     physical containment (e.g., Site $\rightarrow$ Building $\rightarrow$ Floor),
-    while the \emph{Functional Tree} captures technical dependencies (e.g., Heating
+    while the {Functional Tree} captures technical dependencies (e.g., Heating
     System $\rightarrow$ Pump $\rightarrow$ Flow Sensor). This dual structure enables
     both spatial and functional attribution over the same telemetry.
 
@@ -67,76 +65,90 @@ instantiated from reusable templates and organized into complementary hierarchie
     views across tenants.
 \end{description}
 
-
-
 \section{Formal Design Objectives and System Requirements}
 
-The anomaly detection framework is designed as a probabilistic, large-scale
-contextual inference system for non-stationary building telemetry. The following
-objectives formally define the design constraints and optimization goals governing
-the detection methodology and system architecture.
+The following objectives are derived from the structural properties of building-energy
+telemetry and the methodological constraints identified in prior work (see
+Chapters~\ref{chap:fundamentals} and~\ref{chap:state-of-the-art}). They define the design
+targets that govern both the detection methodology and its production deployment.
 
-\subsection{Functional Objectives}
+\subsection{Methodological Objectives}
+{\renewcommand{\labelenumi}{\textbf{O\arabic{enumi}:}}
+\begin{enumerate}
+	\item \textbf{Contextual Fidelity}\label{obj:contextual-fidelity}\\
+	Deviations must be assessed relative to a context-conditioned normative baseline
+	(seasonality, occupancy, weather) rather than absolute residual magnitude, to
+	prevent regime changes from being misclassified as anomalies.
 
-\begin{description}
-    \item[Contextual Fidelity]
-    The system must detect deviations relative to regime-conditioned normative
-    behavior rather than absolute residual magnitudes, ensuring invariance to
-    seasonal, occupancy-driven, and weather-induced regime shifts.
+	\item \textbf{Distributional Validity}\label{obj:distributional-validity}\\
+	Normal behavior must be represented by calibrated predictive uncertainty
+	(e.g., quantile envelopes) that remains valid under multimodal, heavy-tailed, and
+	non-Gaussian operating regimes.
 
-    \item[Distributional Validity]
-    Expected behavior must be represented through calibrated probabilistic bounds
-    that remain valid under multimodal, heavy-tailed, and non-Gaussian operating
-    regimes.
+	\item \textbf{Drift Robustness}\label{obj:drift-robustness}\\
+	Detection must remain sensitive under gradual baseline drift and abrupt regime
+	transitions (baseline shifts) without relying on fragile, scheduled retraining cycles.
 
-    \item[Drift Robustness]
-    Detection sensitivity must be preserved under slow baseline drift and abrupt
-    regime transitions without requiring explicit retraining cycles.
+	\item \textbf{Persistence Preservation}\label{obj:persistence-preservation}\\
+	Sustained faults and recurring inefficiencies must remain detectable and must not
+	be absorbed into the normative reference through adaptation effects (e.g., sliding-window
+	contamination or implicit normalization).
 
-    \item[Persistence Preservation]
-    Sustained inefficiencies must remain detectable and must not be absorbed into
-    the learned normative baseline.
+	\item \textbf{Hierarchical Diagnosability}\label{obj:hierarchical-diagnosability}\\
+	Detected anomalies must be localizable to concrete physical subsystems via
+	hierarchical asset ontologies to support actionable diagnostics.
 
-    \item[Hierarchical Diagnosability]
-    Detected anomalies must be attributable to concrete physical subsystems through
-    hierarchical asset ontologies.
+	\item \textbf{Economic Interpretability}\label{obj:economic-interpretability}\\
+	Deviations must be translated into conservative, physically defensible signed
+	impact estimates (loss or savings) based on a regime-consistent baseline.
+\end{enumerate}}
 
-    \item[Economic Interpretability]
-    Deviations must be translated into conservative, physically defensible financial
-    loss estimates.
-\end{description}
+\subsection{System and Deployment Objectives}
+{\renewcommand{\labelenumi}{\textbf{O\arabic{enumi}:}}
+\begin{enumerate}
+	\setcounter{enumi}{6}
+	\item \textbf{Horizontal Scalability}\label{obj:horizontal-scalability}\\
+	The framework must support horizontally scalable, parallel processing of large
+	building portfolios with independent execution across assets and tenants.
 
-\subsection{Operational Objectives}
+	\item \textbf{Multi-Tenant Isolation}\label{obj:multi-tenant-isolation}\\
+	The system must enforce strict tenant scoping for data, configuration, and outputs,
+	and prevent cross-tenant interference (both logical leakage and resource contention).
 
-\begin{description}
-    \item[Scalability]
-    The framework must support horizontally scalable, parallel processing of
-    independent building portfolios under multi-tenant operation.
+	\item \textbf{Data Integrity Robustness}\label{obj:data-integrity-robustness}\\
+	Transmission gaps, aggregation spikes, and recovery artifacts must be explicitly
+	handled to avoid generating non-physical anomalies.
 
-    \item[Multi-Tenant Isolation]
-    Detection, scoring, and attribution must operate independently across tenants
-    and building portfolios.
-
-    \item[Data Integrity Robustness]
-    Transmission gaps, aggregation spikes, and recovery artifacts must be explicitly
-    mitigated to prevent non-physical anomaly generation.
-
-    \item[External Driver Separation]
-    Exogenous environmental drivers (e.g., weather extremes) must be distinguishable
-    from endogenous technical faults.
-\end{description}
-
+\end{enumerate}}
 
 \section{Time-Series Foundation Models}
 \label{sec:ts-foundation-models}
 
-Time-series foundation models (TSFMs) are large-scale pretrained sequence models trained on heterogeneous collections of time series across domains, tasks, and temporal resolutions. In contrast to task-specific forecasting networks, TSFMs learn domain-agnostic temporal representations and support zero-shot generalization to unseen time series without per-asset retraining.
+\ac{TSFM}s directly support Objectives~\textbf{O\ref{obj:distributional-validity}},
+\textbf{O\ref{obj:drift-robustness}},\textbf{O\ref{obj:contextual-fidelity}} and~\textbf{O\ref{obj:horizontal-scalability}} by
+providing probabilistic forecasts with context-conditioned adaptation under
+non-stationarity at portfolio scale, reducing the need for per-asset retraining
+pipelines.
+\ac{TSFM}s are large-scale pretrained sequence models trained on heterogeneous
+collections of time series across domains, tasks, and temporal resolutions. In contrast
+to task-specific forecasting networks, \ac{TSFM}s learn general temporal representations
+and can be applied in a zero-shot regime to unseen series, removing the need for
+maintaining and periodically retraining asset-specific models.
 
-Chronos-2 is a transformer-based TSFM trained on large-scale synthetic and real-world time series corpora and provides probabilistic quantile forecasts\parencite{ansari2025chronos}. Its architecture supports conditioning on multivariate contextual covariates and adapts to distribution shifts by updating its inference context rather than through explicit retraining. These properties make Chronos-2 particularly suitable for non-stationary building energy telemetry and large-portfolio deployments.
+Chronos-2 is a transformer-based \ac{TSFM} trained on large-scale synthetic and
+real-world corpora and provides direct probabilistic quantile forecasts
+\parencite{ansari2025chronos}. By conditioning inference on the most recent historical
+context (and optional covariates), Chronos-2 can track baseline shifts through its
+context window rather than explicit retraining. This combination of calibrated
+distributional outputs and context-based adaptation makes it well aligned with
+non-stationary building-energy telemetry and large-portfolio deployment constraints.
 
 
 \section{Financial Impact Quantification}
 \label{sec:financial-impact}
+
+This section addresses Objectives~\textbf{O\ref{obj:economic-interpretability}} and
+\textbf{O\ref{obj:distributional-validity}} by defining a signed, regime-consistent impact estimator that maps deviations to conservative monetary loss or savings.
 
 Let $x_t$ denote the observed energy consumption and $p_t(x)$ the predictive
 distribution of nominal operation at time $t$.
@@ -149,8 +161,8 @@ If a mixture density is available,
 \[
 p_t(x)=\sum_{k=1}^{K}\pi_{t,k}\mathcal{N}(x\mid\mu_{t,k},\sigma_{t,k}^2),
 \]
-the baseline is chosen as the mean of the mixture component whose density best
-explains the observed value, i.e., the closest plausible operating regime:
+the baseline is chosen as the mean of the mixture component with maximal posterior
+responsibility for $x_t$ (MAP operating regime):
 \[
 k^*=\arg\max_k \pi_{t,k}\mathcal{N}(x_t\mid\mu_{t,k},\sigma_{t,k}^2), \qquad
 \tilde{\mu}_t=\mu_{t,k^*}.
@@ -166,10 +178,12 @@ to the regime-consistent baseline.
 \subsection{Fallback Without Mixture Information}
 
 If only unimodal uncertainty is available, the baseline is conservatively shifted by
-one standard deviation in the direction of the observation:
+one standard deviation toward the observation:
 \[
-\tilde{\mu}_t = \mu_t + \sigma_t .
+\tilde{\mu}_t =
+\mu_t + \operatorname{sign}(x_t-\mu_t)\,\sigma_t .
 \]
+
 
 \subsection{Economic Impact}
 
@@ -183,56 +197,57 @@ verifiable savings.
 
 This formulation yields conservative, regime-consistent and economically interpretable
 impact estimates under non-Gaussian and non-stationary operating conditions.
+
 \section{Hierarchical Root Cause Analysis and Action Synthesis}
 \label{sec:root-cause-analysis}
 
-Aggregate anomaly detection provides limited operational value unless deviations can
-be localized to concrete physical subsystems. The proposed framework therefore performs
-hierarchical root cause analysis (RCA) using the ontological asset model of the Eliona
+This section addresses Objective~\textbf{O\ref{obj:hierarchical-diagnosability}} by
+localizing aggregate deviations to concrete subsystems using the asset ontology and
+summarizing evidence for operational interpretation.
+
+Aggregate anomaly detection provides limited operational value unless deviations can be
+localized to actionable physical subsystems. The proposed framework therefore performs
+hierarchical \ac{RCA} using the ontological asset model of the Eliona
 platform.
 
 \subsection{Ontology-Guided Attribution}
 
-All building assets are organized in dual hierarchies representing both geographical
-containment (e.g., site, building, floor, room) and functional decomposition (e.g.,
-main meter, sub-meter, device). When an anomaly is detected at an aggregate level,
-all subordinate assets are queried for their individual anomaly impact.
-
-Assets are ranked by their cumulative contribution over the anomaly interval. Those
-with the highest contribution are identified as the most probable physical sources of
-the aggregate deviation. This enables localization not only to specific meters but to
-concrete functional subsystems and physical zones.
+Assets are organized in dual hierarchies capturing geographical containment (e.g., site,
+building, floor) and functional decomposition (e.g., main meter, sub-meter, device).
+When an anomaly is detected at an aggregate level, subordinate assets are queried and
+ranked by their cumulative signed impact over the anomaly interval. The highest-ranked
+assets are treated as the primary contributors to the aggregate deviation, enabling
+localization to specific meters, subsystems, and physical zones.
 
 \subsection{Aggregation by Asset Type}
 
-To detect systematic inefficiencies, anomaly impact is additionally aggregated by
-semantic asset categories (e.g., HVAC, lighting, plug loads). This reveals distributed
-but structurally consistent inefficiencies that may not be visible at individual device
-level.
+To expose distributed inefficiencies, impacts are additionally aggregated by semantic
+asset categories (e.g., \ac{HVAC}, lighting, plug loads). This highlights systematic issues
+that may be small per device but substantial in combination.
 
 \subsection{Contextual Synthesis and Action Generation}
 
-Localized assets, aggregated impacts, and contextual conditions (time, calendar,
-weather) are consolidated into a structured diagnostic representation and passed to
-a domain-specialized large language model (LLM).
-
-The LLM operates exclusively at the interpretation layer. It converts structured
-evidence into human-readable explanations and actionable operational recommendations,
-including quantified savings estimates.
+Localized contributors, type-level aggregates, and contextual conditions (time, calendar,
+weather) are consolidated into a structured diagnostic payload and passed to a
+domain-specialized \ac{LLM}. The \ac{LLM} operates exclusively at the
+interpretation layer, converting structured evidence into human-readable explanations
+and actionable recommendations, including quantified impact estimates.
 
 \subsection{Design Rationale}
 
-All detection, scoring, and financial quantification are performed deterministically
-from measured data and building ontologies. The LLM is used exclusively for semantic
-interpretation and recommendation synthesis and does not influence anomaly detection
-or decision boundaries, ensuring traceability, auditability, and regulatory compliance.
+Detection, scoring, and impact quantification are derived deterministically from measured
+data and the asset ontology. The \ac{LLM} is restricted to semantic interpretation and does
+not influence anomaly detection or decision boundaries, ensuring traceability and
+auditability.
 
 
 
 \section{Critique of Sequential Forecasting for Anomaly Detection}
 \label{sec:critique-sequential}
 
-A dominant paradigm in time-series anomaly detection is the use of sequential forecasting models. In this approach, a model (e.g., RNN, LSTM, or Transformer) is trained to predict the next value $x_t$ based on a sliding window of historical values $(x_{t-w}, \ldots, x_{t-1})$ and potentially exogenous features. An anomaly is flagged if the deviation (residual) between the predicted value $\hat{x}_t$ and the actual value $x_t$ exceeds a threshold. While intuitively appealing, this autoregressive approach suffers from fundamental limitations when applied to sustained anomalies in industrial settings, particularly regarding error propagation and signal adaptation. To demonstrate these failure modes, a controlled synthetic experiment was conducted.
+This section addresses Objectives~\textbf{O\ref{obj:persistence-preservation}} and~\textbf{O\ref{obj:drift-robustness}} by demonstrating how autoregressive detectors can become unstable or adapt away sustained anomalies under non-stationarity.
+
+A dominant paradigm in time-series anomaly detection is the use of sequential forecasting models. In this approach, a model (e.g., \ac{RNN}, \ac{LSTM}, or Transformer) is trained to predict the next value $x_t$ based on a sliding window of historical values $(x_{t-w}, \ldots, x_{t-1})$ and potentially exogenous features. An anomaly is flagged if the deviation (residual) between the predicted value $\hat{x}_t$ and the actual value $x_t$ exceeds a threshold. While intuitively appealing, this autoregressive approach suffers from fundamental limitations when applied to sustained anomalies in industrial settings, particularly regarding error propagation and signal adaptation. To demonstrate these failure modes, a controlled synthetic experiment was conducted.
 
 \subsection{Synthetic Experimental Setup}
 
@@ -251,7 +266,7 @@ The first fundamental issue arises when a sequential model encounters substantia
 
 Figure~\ref{fig:seq-24h-instability} illustrates this phenomenon using a model trained with a 24-hour historical window plus time-based features (time of day, \texttt{is\_weekend}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/seq-24h-window-plus-features.png}
 	\caption{Prediction behavior of a model using a 24~h historical window plus time features. The top panel shows actual vs. predicted values; the bottom panel shows the difference-based anomaly score. Note the erratic predictions even after the anomaly ends as the unseen data propagates through the sliding window.}
@@ -266,7 +281,7 @@ The second failure mode is conversely related to models relying heavily on short
 
 Figure~\ref{fig:seq-short-adaptation} shows a model trained only on the past five historical values, without contextual features.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/seq-5h-window-only.png}
 	\caption{Prediction behavior of a model using only a short (5-step) historical window. The model correctly identifies the onset of anomalies but rapidly adapts to the new level, causing the anomaly score to drop back to near zero while the anomaly is still ongoing.}
@@ -277,7 +292,7 @@ The model successfully flags the onset of both anomalies due to the sudden jump.
 
 \subsubsection{Implications for Evaluation Metrics and Financial Impact}
 
-This behavior explains the heavy reliance in academic literature on Point Adjustment F1 (PA-F1) scores. In PA-F1, if a model detects a single point within a contiguous anomaly segment, the entire segment is counted as correctly detected. While this inflates benchmark scores, it masks the model's inability to track sustained deviations.
+This behavior explains the heavy reliance in academic literature on \ac{PA-F1} scores. In \ac{PA-F1}, if a model detects a single point within a contiguous anomaly segment, the entire segment is counted as correctly detected. While this inflates benchmark scores, it masks the model's inability to track sustained deviations.
 
 For industrial applications requiring financial impact quantification, this failure mode is catastrophic. Calculating financial loss requires integrating the deviation over the entire duration of the event. A model that only flags the first 15 minutes of a 4-hour energy spike is useless for quantifying the total wasted energy.
 
@@ -299,12 +314,12 @@ Figure~\ref{fig:features-only} demonstrates this approach. The prediction remain
 \end{figure}
 
 \subsubsection{Strategy B: Inference-Time Input Imputation}
-
+\label{sec:inference-time-imputation}
 To retain the benefits of sequential modeling while mitigating error propagation, an inference-time correction mechanism can be introduced. If the anomaly score at step $t$ exceeds a defined threshold, the actual value $x_t$ is considered contaminated. Instead of feeding $x_t$ into the sliding window for step $t+1$, the model's own prediction $\hat{x}_t$ is imputed as a ``corrected'' value. In an online or periodically retrained setting, this also prevents the model from adapting its baseline to these anomalous segments, so similar future events are not reinterpreted as normal behaviour despite the non-stationarity of the raw building signal.
 
 Figure~\ref{fig:seq-corrected} applies this logic to the unstable 24-hour window model from Figure~\ref{fig:seq-24h-instability}. By replacing anomalous inputs with predictions, the sliding window remains clean, preventing the model from adapting to the anomaly or becoming unstable. This allows for accurate tracking of sustained anomalies while still using sequential architectures.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/seq-24h-window-plus-features-corrected.png}
 	\caption{The same 24-hour window model from Figure~\ref{fig:seq-24h-instability}, but applied with inference-time imputation. When an anomaly is detected, the predicted value replaces the actual value in the sliding window for future steps. This prevents error propagation and maintains a high anomaly score throughout the event.}
@@ -313,22 +328,24 @@ Figure~\ref{fig:seq-corrected} applies this logic to the unstable 24-hour window
 
 \section{Statistical Limitations of Point and Gaussian Predictions}
 \label{sec:statistical-limitations}
+This section addresses Objective~\textbf{O\ref{obj:distributional-validity}} by
+demonstrating why point and single-Gaussian predictors fail under multimodal regimes.
 
-To isolate the effect of distributional assumptions on anomaly detection, a synthetic ``Variable Shift'' dataset was created. Each hourly sample toggles between a low-power regime ($0\text{--}1\,\text{kWh}$) and a high-power regime ($9\text{--}11\,\text{kWh}$) with a stochastic morning/evening schedule (approximately 60/40 split). A stuck-at fault of $5\,\text{kWh}$ was injected during a regular weekday to emulate a latent control failure. Figure~\ref{fig:comparison-means} shows that all three model families---deterministic dense regression, single-Gaussian prediction, and Mixture Density Networks (MDN)---deliver visually similar means, yet their anomaly scoring behavior diverges drastically.
+To isolate the effect of distributional assumptions on anomaly detection, a synthetic ``Variable Shift'' dataset was created. Each hourly sample toggles between a low-power regime ($0\text{--}1\,\text{kWh}$) and a high-power regime ($9\text{--}11\,\text{kWh}$) with a stochastic morning/evening schedule (approximately 60/40 split). A stuck-at fault of $5\,\text{kWh}$ was injected during a regular weekday to emulate a latent control failure. Figure~\ref{fig:comparison-means} shows that all three model families---deterministic dense regression, single-Gaussian prediction, and \ac{MDN}---deliver visually similar means, yet their anomaly scoring behavior diverges drastically.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-model-comparison.png}
-	\caption{Predicted means over the Variable Shift horizon. Dense, Gaussian, and MDN models track the two regimes, masking the scoring deficiencies discussed in Sections~\ref{subsec:mse-failure}--\ref{subsec:mdn-solution}.}
+	\caption{Predicted means over the Variable Shift horizon. Dense, Gaussian, and \ac{MDN} models track the two regimes, masking the scoring deficiencies discussed in Sections~\ref{subsec:mse-failure}--\ref{subsec:mdn-solution}.}
 	\label{fig:comparison-means}
 \end{figure}
 
 \subsection{The Failure of Mean Squared Error Minimization}
 \label{subsec:mse-failure}
 
-Dense regressors trained with Mean Squared Error (MSE) converge toward the global average of both regimes. In bimodal settings this leads to systematic bias: the model predicts approximately $5\,\text{kWh}$ regardless of whether the system is in its ``Off'' (low) or ``On'' (high) state. Consequently, perfectly normal behavior is scored as highly anomalous, whereas the injected stuck-at-$5$ event appears deceptively healthy because it matches the biased mean. The residual trace in Figure~\ref{fig:dense-failure} exposes this contradiction: the absolute error balloons whenever the device operates normally, yet it contracts when the genuine anomaly occurs.
+Dense regressors trained with \ac{MSE} converge toward the global average of both regimes. In bimodal settings this leads to systematic bias: the model predicts approximately $5\,\text{kWh}$ regardless of whether the system is in its ``Off'' (low) or ``On'' (high) state. Consequently, perfectly normal behavior is scored as highly anomalous, whereas the injected stuck-at-$5$ event appears deceptively healthy because it matches the biased mean. The residual trace in Figure~\ref{fig:dense-failure} exposes this contradiction: the absolute error balloons whenever the device operates normally, yet it contracts when the genuine anomaly occurs.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-dense-panel.png}
 	\caption{Dense regressor residuals over the Variable Shift dataset. The mid-range prediction inflates anomaly scores for legitimate operating states, while the stuck-at-$5$ fault yields a small residual.}
@@ -338,52 +355,55 @@ Dense regressors trained with Mean Squared Error (MSE) converge toward the globa
 \subsection{The Gaussian Distribution Paradox}
 \label{subsec:gaussian-paradox}
 
-A single-component Gaussian attempts to reconcile bimodality by inflating its variance. The resulting Probability Density Function (PDF) concentrates probability mass near the center---a region never visited by real data. The normalized log-likelihood trace (Figure~\ref{fig:gaussian-panel}) confirms that the stuck-at-$5$ anomaly sits inside the ``most likely'' area of the Gaussian, generating a low penalty. Meanwhile, legitimate regime values land in lower-density shoulders and spuriously raise the score. The heatmap in Figure~\ref{fig:gaussian-heatmap} makes the distortion visible: the green, high-probability band spans the median instead of the true modes.
+A single-component Gaussian attempts to reconcile bimodality by inflating its variance. The resulting \ac{PDF} concentrates probability mass near the center---a region never visited by real data. The  \ac{NLL} trace (Figure~\ref{fig:gaussian-panel}) confirms that the stuck-at-$5$ anomaly sits inside the ``most likely'' area of the Gaussian, generating a low penalty. Meanwhile, legitimate regime values land in lower-density shoulders and spuriously raise the score. The heatmap in Figure~\ref{fig:gaussian-heatmap} makes the distortion visible: the green, high-probability band spans the median instead of the true modes.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-gaussian-panel.png}
 	\caption{Absolute log-likelihood trace for the single-Gaussian predictor. The stuck-at-$5$ anomaly aligns with the high-likelihood center, suppressing the score.}
 	\label{fig:gaussian-panel}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-gaussian-heatmap.png}
-	\caption{Per-timestep normalized PDF for the Gaussian model. High probability mass accumulates between the actual clusters, illustrating the variance-stretching paradox.}
+	\caption{Per-timestep normalized \ac{PDF} for the Gaussian model. High probability mass accumulates between the actual clusters, illustrating the variance-stretching paradox.}
 	\label{fig:gaussian-heatmap}
 \end{figure}
 
 \subsection{Solution: Mixture Density Networks}
 \label{subsec:mdn-solution}
 
-Mixture Density Networks address both issues by learning multiple kernels simultaneously. Each component can specialize in a particular operating mode, while the regions between components retain near-zero probability. Figure~\ref{fig:mdn-heatmap} shows how the MDN assigns green (high probability) bands only where data is observed, keeping the mid-range red. When log-likelihood is used as the anomaly score, the stuck-at-$5$ fault immediately falls into the valley between components, producing a sharp increase in $|\log p(x)|$ (Figure~\ref{fig:mdn-panel}). This probabilistic separation allows the MDN to quantify financial impact reliably: integrating the residual energy over time now reflects the true magnitude of the fault rather than artifacts of model bias.
+Mixture Density Networks address both issues by learning multiple kernels simultaneously. Each component can specialize in a particular operating mode, while the regions between components retain near-zero probability. Figure~\ref{fig:mdn-heatmap} shows how the \ac{MDN} assigns green (high probability) bands only where data is observed, keeping the mid-range red. When log-likelihood is used as the anomaly score, the stuck-at-$5$ fault immediately falls into the valley between components, producing a sharp increase in $|\log p(x)|$ (Figure~\ref{fig:mdn-panel}). This probabilistic separation allows the \ac{MDN} to quantify financial impact reliably: integrating the residual energy over time now reflects the true magnitude of the fault rather than artifacts of model bias.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-panel.png}
-	\caption{MDN absolute log-likelihood trace. The stuck-at-$5$ anomaly triggers a sustained spike because the value resides in a low-probability region between mixture components.}
+	\caption{\ac{MDN} absolute log-likelihood trace. The stuck-at-$5$ anomaly triggers a sustained spike because the value resides in a low-probability region between mixture components.}
 	\label{fig:mdn-panel}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-heatmap.png}
-	\caption{MDN normalized PDF heatmap. Two distinct high-probability ridges align with the real operating modes, while the middle band remains improbable.}
+	\caption{\ac{MDN} normalized \ac{PDF} heatmap. Two distinct high-probability ridges align with the real operating modes, while the middle band remains improbable.}
 	\label{fig:mdn-heatmap}
 \end{figure}
 
-\section{Distribution-Aware Anomaly Scoring for Mixture Density Models}
-\label{sec:mdn-anomaly-scoring}
+\section{Distribution-Aware Anomaly Scoring for Mixture Distributions}
+\label{sec:md-anomaly-scoring}
+This section addresses Objectives~\textbf{O\ref{obj:distributional-validity}} and
+\textbf{O\ref{obj:persistence-preservation}} by deriving scores that remain valid under
+multimodality and are comparable across time for persistence tracking and ranking.
 
 Building on Section~\ref{sec:statistical-limitations}, which details the Variable Shift dataset and its bimodal operating regimes, we now analyze how distribution-aware anomaly scores behave when the predictive density itself is multimodal. The deterministic residual failures from Section~\ref{sec:critique-sequential} are amplified in this setting because no single ``expected value'' exists, making deviation from the mean a misleading proxy for abnormality.
 
-Figure~\ref{fig:variable-shift-mdn-scores} extends the MDN perspective by overlaying several candidate scores derived from the same mixture distribution: mean residuals, PIT, negative log-likelihood, and the proposed Density--Quantile (DQ) family.
+Figure~\ref{fig:variable-shift-mdn-scores} extends the \ac{MD} perspective by overlaying several candidate scores derived from the same mixture distribution: mean residuals, PIT, negative log-likelihood, and the proposed \ac{DQ} family.
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-multi-scores-panel.png}
-	\caption{Comparison of anomaly scoring methods derived from a Mixture Density Network under a bimodal operating regime with an injected intermediate anomaly. The top panel shows the predicted probability density together with the actual observation and the MDN mean. Subsequent panels compare mean residuals, PIT-based scores, negative log-likelihood, and the proposed Density--Quantile (DQ) scores and severities.}
+	\caption{Comparison of anomaly scoring methods derived from a mixture distribution (\ac{MD}) under a bimodal operating regime with an injected intermediate anomaly. The top panel shows the predictive density together with the actual observation and the \ac{MD} mean. Subsequent panels compare mean residuals, Quantile Based scores, \ac{NLL}, and the proposed \ac{DQ} scores and severities.}
 	\label{fig:variable-shift-mdn-scores}
 \end{figure}
 
@@ -394,42 +414,42 @@ The most common anomaly score is the absolute residual between the observation $
 	s_t^{\text{mean}} = |x_t - \mu_t|.
 \end{equation}
 
-In multimodal settings, the mean of the predictive distribution often lies in a region of \emph{low probability mass}. As shown in Figure~\ref{fig:variable-shift-mdn-scores}, the MDN mean converges to an intermediate value between the two legitimate modes. Consequently, observations that are perfectly normal but belong to either mode exhibit large residuals and are falsely flagged as anomalous. Conversely, the injected anomaly---located near the mean but inside a low-density valley---produces a small residual and is incorrectly classified as normal.
+In multimodal settings, the mean of the predictive distribution often lies in a region of {low probability mass}. As shown in Figure~\ref{fig:variable-shift-mdn-scores}, the \ac{MD} mean converges to an intermediate value between the two legitimate modes. Consequently, observations that are perfectly normal but belong to either mode exhibit large residuals and are falsely flagged as anomalous. Conversely, the injected anomaly---located near the mean but inside a low-density valley---produces a small residual and is incorrectly classified as normal.
 
 This demonstrates that residual magnitude is not a valid proxy for abnormality when the expected behaviour cannot be represented by a single point estimate.
 
-\subsection{Probability Integral Transform (PIT)}
-
-A distribution-aware alternative is the Probability Integral Transform (PIT), which maps each observation to its cumulative probability under the predicted distribution:
-\begin{equation}
-	\text{PIT}_t = F_t(x_t) = \int_{-\infty}^{x_t} p_t(y)\, \mathrm{d}y,
-\end{equation}
-where $p_t(y)$ denotes the MDN predictive density at time $t$. A symmetric anomaly score can be defined as:
-\begin{equation}
-	s_t^{\text{PIT}} = 1 - \text{PIT}_t.
-\end{equation}
-
-PIT correctly identifies observations in the extreme tails of the distribution. However, it remains insensitive to \emph{low-density regions between modes}. In Figure~\ref{fig:variable-shift-mdn-scores}, the injected anomaly lies near the median of the distribution and therefore yields a moderate PIT value, despite being highly unlikely. PIT thus fails to detect anomalies that occupy density valleys rather than tails.
+\subsection{Quantile-Based Bounds}
+\label{subsec:quantile-bounds}
+Instead of using the mean, anomalies can be detected using outer \ac{QBB} of the
+predictive distribution. Let $q_{t,\alpha}$ denote the $\alpha$-quantile of $p_t(x)$.
+For a chosen $\alpha$, the nominal band is $[q_{t,\alpha},\, q_{t,1-\alpha}]$. An
+observation is flagged if it exceeds this envelope:
+\[
+x_t > q_{t,1-\alpha} \quad \text{or} \quad x_t < q_{t,\alpha}.
+\]
+\ac{QBB} are distribution-free and remain meaningful under non-Gaussian and
+heavy-tailed regimes, but they primarily detect tail events and can miss low-density
+valleys between modes.
 
 \subsection{Negative Log-Likelihood and Its Limitations}
 
-Another principled score is the negative log-likelihood (NLL):
+Another principled score is the \ac{NLL}:
 \begin{equation}
 	s_t^{\text{NLL}} = -\log p_t(x_t).
 \end{equation}
 
-NLL correctly assigns high anomaly scores to observations in low-density regions, including the valley between modes. As shown in Figure~\ref{fig:variable-shift-mdn-scores}, it robustly detects the injected anomaly.
+\ac{NLL} correctly assigns high anomaly scores to observations in low-density regions, including the valley between modes. As shown in Figure~\ref{fig:variable-shift-mdn-scores}, it robustly detects the injected anomaly.
 
-However, NLL values are \emph{not comparable across time}. Each timestamp $t$ corresponds to a different predictive distribution with different entropy, variance, and scale. As a result, absolute NLL magnitudes cannot be meaningfully thresholded or aggregated over time, limiting their use for persistence analysis, severity ranking, and financial quantification.
+However, \ac{NLL} values are {not comparable across time}. Each timestamp $t$ corresponds to a different predictive distribution with different entropy, variance, and scale. As a result, absolute \ac{NLL} magnitudes cannot be meaningfully thresholded or aggregated over time, limiting their use for persistence analysis, severity ranking, and financial quantification.
 
 \subsection{Density--Quantile (DQ) Probability}
 
-To obtain a score that is both distribution-aware and comparable across time, this work introduces the Density--Quantile (DQ) probability. Instead of evaluating the density at a single point, DQ measures the proportion of probability mass that is \emph{less likely} than the observed value:
+To obtain a score that is both distribution-aware and comparable across time, this work introduces the \ac{DQ} probability. Instead of evaluating the density at a single point, \ac{DQ} measures the proportion of probability mass that is {less likely} than the observed value:
 \begin{equation}
 	\text{DQ}_t = \int_{\{y : p_t(y) \leq p_t(x_t)\}} p_t(y)\, \mathrm{d}y.
 \end{equation}
 
-By construction, $\text{DQ}_t \in (0,1]$ and is invariant to the shape, scale, and entropy of the underlying distribution. Observations in high-density regions yield large DQ values, while points located in tails or low-density valleys yield small values.
+By construction, $\text{DQ}_t \in (0,1]$ and is invariant to the shape, scale, and entropy of the underlying distribution. Observations in high-density regions yield large \ac{DQ} values, while points located in tails or low-density valleys yield small values.
 
 An anomaly score can therefore be defined as:
 \begin{equation}
@@ -439,24 +459,42 @@ An anomaly score can therefore be defined as:
 As shown in Figure~\ref{fig:variable-shift-mdn-scores}, this score simultaneously suppresses false positives for legitimate operating modes and sharply highlights the injected anomaly located between the modes.
 
 \subsection{Density--Quantile Severity Scaling}
-
-While $1-\text{DQ}_t$ provides a normalized anomaly score, it does not reflect the \emph{relative improbability} of extreme events. For example, the difference between $\text{DQ}=0.99$ and $\text{DQ}=0.98$ corresponds to a doubling of unlikeliness, yet both values are close on a linear scale.
+\label{subsec:density-quantile-severity}
+While $1-\text{DQ}_t$ provides a normalized anomaly score, it does not reflect the {relative improbability} of extreme events. For example, the difference between $\text{DQ}=0.99$ and $\text{DQ}=0.98$ corresponds to a doubling of unlikeliness, yet both values are close on a linear scale.
 
 To address this, a severity transformation is introduced:
 \begin{equation}
 	\text{Severity}_t = \min\!\left(1,\; \frac{p_{\min}}{\text{DQ}_t}\right),
-\end{equation}
+\end{equation}	
 where $p_{\min}$ defines the minimum reference quantile that maps to maximum severity.
 
-This transformation preserves the ordering induced by DQ while amplifying differences in the extreme low-probability regime. By selecting $p_{\min}$, the sensitivity of the detector can be explicitly controlled, as illustrated in Figure~\ref{fig:variable-shift-mdn-scores} for $p_{\min}=10^{-2}$ and $p_{\min}=10^{-4}$.
+This transformation preserves the ordering induced by \ac{DQ} while amplifying differences in the extreme low-probability regime. By selecting $p_{\min}$, the sensitivity of the detector can be explicitly controlled, as illustrated in Figure~\ref{fig:variable-shift-mdn-scores} for $p_{\min}=10^{-2}$ and $p_{\min}=10^{-4}$.
 
 \subsection{Summary}
 
-Density--Quantile scoring combines the strengths of likelihood-based detection with the comparability of quantile methods. Unlike residuals, it respects multimodality; unlike PIT, it captures density valleys; and unlike NLL, it produces normalized, time-comparable scores suitable for persistence tracking, severity ranking, and downstream financial impact estimation. For these reasons, DQ-based scoring forms the core anomaly quantification mechanism in this work.
+\ac{DQ} scoring combines likelihood sensitivity with the normalization and
+time-comparability of quantile-based methods. Unlike residuals, it remains valid under
+multimodal predictive distributions; unlike \ac{QBB}, it resolves low-density valleys
+within the support; and unlike \ac{NLL}, it yields bounded, comparable scores suitable
+for persistence tracking, severity ranking, and downstream financial impact estimation.
 
-
+Therefore, \ac{DQ}-based scoring is deemed the most suitable anomaly quantification
+mechanism for \ac{MD} predictive distributions in this work, directly supporting
+Objectives~\textbf{O\ref{obj:distributional-validity}} and
+\textbf{O\ref{obj:persistence-preservation}}, and enabling downstream impact estimation
+(Objective~\textbf{O\ref{obj:economic-interpretability}}).
 
 \section{Methodological Scope}
-The proposed methodology formalizes energy anomaly detection as probabilistic deviation
-from regime-conditioned multimodal baselines under non-stationary dynamics and maps
-these deviations to economically interpretable and diagnostically localizable events.
+
+This chapter derives the core methodological contributions of the thesis: contextual,
+distribution-aware anomaly detection and scoring under multimodality and
+non-stationarity (Objectives~\textbf{O\ref{obj:contextual-fidelity}}--
+\textbf{O\ref{obj:persistence-preservation}}), conservative signed financial impact
+quantification (Objective~\textbf{O\ref{obj:economic-interpretability}}), and
+hierarchical localization via asset ontologies (Objective~\textbf{O\ref{obj:hierarchical-diagnosability}}).
+
+System-level objectives are specified here as design constraints, but are
+operationalized and validated in subsequent chapters: portfolio-scale execution and
+tenant isolation in the implementation (Objectives~\textbf{O\ref{obj:horizontal-scalability}}
+and \textbf{O\ref{obj:multi-tenant-isolation}}), and robustness to telemetry artifacts
+in both the ingestion pipeline and benchmarking (Objective~\textbf{O\ref{obj:data-integrity-robustness}}).

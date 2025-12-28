@@ -25,8 +25,6 @@ Building energy data is inherently multivariate and interdependent. In addition 
 \subsection{Causal Chain of Energy Consumption}
 \label{subsec:causal-chain-energy-consumption}
 
-Energy consumption emerges from a causal chain spanning demand generation, control logic, and mechanical execution. Environmental and occupancy conditions generate service demand; controllers translate demand into actuation commands; mechanical subsystems execute these commands, producing measurable energy use. Deviations observed at aggregate meters therefore frequently originate from faults located in upstream sensing or control layers.
-
 
 \begin{figure}[htbp]
 	\centering
@@ -41,7 +39,7 @@ For instance, a malfunctioning temperature sensor reporting an erroneous heat sp
 
 \subsubsection{HVAC and Environmental Drivers}
 
-HVAC systems dominate building energy demand. Thermal gradients, solar radiation, humidity, and scheduling logic determine cooling and heating loads. Suboptimal control strategies, scheduling conflicts, and mechanical degradation induce baseline drift and excessive consumption, generating anomalies that are often operationally normal yet energetically inefficient.
+\ac{HVAC} systems dominate building energy demand. Thermal gradients, solar radiation, humidity, and scheduling logic determine cooling and heating loads. Suboptimal control strategies, scheduling conflicts, and mechanical degradation induce baseline drift and excessive consumption, generating anomalies that are often operationally normal yet energetically inefficient.
 
 
 \subsubsection{Occupancy and Internal Loads}
@@ -107,12 +105,18 @@ The integrity of telemetry streams depends on the stability of the communication
 \section{Foundations of Anomaly Detection}
 \label{sec:fundamentals-anomaly-detection}
 
-Anomaly detection aims to identify observations or patterns that deviate from an implicit notion of normality. In time-series anomaly detection (TSAD), deviations are defined relative to temporal structure, persistence, and regime-dependent behaviour rather than isolated numerical values. The taxonomy adopted in this work follows the benchmark framework proposed by Paparrizos et al.~\cite{paparrizos2022tsb}.
+Anomaly detection aims to identify observations or patterns that deviate from an implicit notion of normality. In  \ac{TSAD}, deviations are defined relative to temporal structure, persistence, and regime-dependent behaviour rather than isolated numerical values. The taxonomy adopted in this work follows the benchmark framework proposed by Paparrizos et al.~\cite{paparrizos2022tsb}.
 
 \subsection{Dimensionality and Normality Regimes}
 \label{subsec:dimensionality-normality-modes}
 
 The complexity of anomaly detection is governed by the dimensionality of the time series and the number of normative operational regimes.
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/Univariate-Multivariate-normalities.jpg}
+	\caption{Schematic illustration of time series types along two axes---dimensionality (univariate vs.~multivariate) and normality regimes (single-mode vs.~multi-mode). Adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
+	\label{fig:univariate-multivariate-normalities}
+\end{figure}
 
 \begin{description}
 	\item[Dimensionality:] Univariate time series describe a single system variable, whereas multivariate time series jointly model multiple interdependent variables. The dataset analyzed in this work is multivariate, combining aggregate energy consumption with environmental and occupancy drivers to resolve causal ambiguity.
@@ -122,30 +126,25 @@ The complexity of anomaly detection is governed by the dimensionality of the tim
 
 The analyzed data is therefore classified as multivariate with multi-mode normality, necessitating detection models that adapt to shifting baselines and cross-variable dependencies.
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=1.0\textwidth]{images/Univariate-Multivariate-normalities.jpg}
-	\caption{Schematic illustration of time series types along two axes---dimensionality (univariate vs.~multivariate) and normality regimes (single-mode vs.~multi-mode). Adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{Boniol2023NewTrends}.}
-	\label{fig:univariate-multivariate-normalities}
-\end{figure}
 
 \subsection{Terminology: Multivariate and Multi-Target Time Series}
 
-Throughout this thesis, the term \emph{multivariate} denotes covariate-conditioned time-series modelling. That is, anomaly detection is performed on a single primary energy meter while explicitly conditioning on multiple exogenous driver variables such as weather, occupancy and calendar information. This formulation reflects the standard analytical view in building-energy modelling, where contextual variables are required to resolve causal ambiguity and to distinguish contextual anomalies from physically normal load variations.
+Throughout this thesis, the term multivariate denotes covariate-conditioned time-series modelling. That is, anomaly detection is performed on a single primary energy meter while explicitly conditioning on multiple exogenous driver variables such as weather, occupancy and calendar information. This formulation reflects the standard analytical view in building-energy modelling, where contextual variables are required to resolve causal ambiguity and to distinguish contextual anomalies from physically normal load variations.
 
-In contrast, some anomaly-detection literature uses the term multivariate to describe joint modelling of multiple sensor channels as simultaneous prediction targets. In order to avoid ambiguity, this thesis refers to such settings as \emph{multi-target} (or multi-sensor) time-series modelling.
+In contrast, some anomaly-detection literature uses the term multivariate to describe joint modelling of multiple sensor channels as simultaneous prediction targets. In order to avoid ambiguity, this thesis refers to such settings as multi-target (or multi-sensor) time-series modelling.
 
 Accordingly, all experimental investigations in this work address single-target, covariate-conditioned contextual anomaly detection rather than joint multi-target anomaly detection.
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=1.0\textwidth]{images/types-anomalies.jpg}
-	\caption{Taxonomy of time series anomalies along structural and multiplicity dimensions, distinguishing global and contextual point anomalies, subsequence-based anomalies, and their occurrence as single, multiple different, or multiple similar events. Adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{Boniol2023NewTrends}.}
-	\label{fig:anomaly-taxonomy}
-\end{figure}
+
 
 \subsection{Structural Classes of Anomalies}
-
+\label{subsec:structural-classes-anomalies}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/types-anomalies.jpg}
+	\caption{Taxonomy of time series anomalies along structural and multiplicity dimensions, distinguishing global and contextual point anomalies, subsequence-based anomalies, and their occurrence as single, multiple different, or multiple similar events. Adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
+	\label{fig:anomaly-taxonomy}
+\end{figure}
 \begin{description}
   \item[Point Anomalies:] Individual observations that deviate from expected behaviour.
   \item[Global Point Anomalies:] Deviations outside the global historical range.
@@ -181,10 +180,10 @@ Most detection algorithms output an anomaly score $s_i$ per timestamp, which qua
 \subsection{Learning Paradigms}
 
 The applicability of detection methods is governed by the availability of labelled data:
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{images/superviced-unsuperviced.jpg}
-	\caption{Schematic overview of supervised, semi-supervised, and unsupervised learning paradigms for anomaly detection, adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{Boniol2023NewTrends}.}
+	\caption{Schematic overview of supervised, semi-supervised, and unsupervised learning paradigms for anomaly detection, adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
 	\label{fig:learning-paradigms}
 \end{figure}
 
@@ -193,6 +192,9 @@ The applicability of detection methods is governed by the availability of labell
 	\item[Semi-Supervised:] Learns normative behaviour from assumed healthy historical data; commonly used in building-energy monitoring.
 	\item[Unsupervised:] Operates without labelled baselines; typically applied during system commissioning or cold-start phases.
 \end{description}
+In building-energy monitoring, the practical setting is predominantly semi-supervised:
+historical telemetry is typically available and is treated as mostly nominal
+baseline behavior, while explicit anomaly labels are sparse or absent.
 
 
 
@@ -200,10 +202,10 @@ The applicability of detection methods is governed by the availability of labell
 
 Anomaly detection approaches are grouped into three methodological families:
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{images/distance-dencity-forecast.jpg}
-	\caption{Hierarchical taxonomy of anomaly detection methods grouped into distance-based, density-based, and prediction-based families, adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{Boniol2023NewTrends}.}
+	\caption{Hierarchical taxonomy of anomaly detection methods grouped into distance-based, density-based, and prediction-based families, adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
 	\label{fig:method-taxonomy}
 \end{figure}
 
@@ -221,7 +223,7 @@ Benchmarking evaluates anomaly detection performance against labelled reference 
 
 \subsection{Binary Labels and Confusion Matrix}
 
-Each observation is assigned a binary label (normal vs. anomalous). Model predictions are evaluated using the confusion matrix, yielding counts of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN).
+Each observation is assigned a binary label (normal vs. anomalous). Model predictions are evaluated using the confusion matrix, yielding counts of \ac{TP}, \ac{TN}, \ac{FP}, and \ac{FN}.
 
 \subsection{Evaluation Metrics}
 
@@ -238,20 +240,36 @@ These metrics quantify alarm reliability, detection sensitivity, and their balan
 \section{Synthesis of Foundations}
 \label{sec:synthesis-foundations}
 
-Building-energy telemetry constitutes a multivariate, multimodal, and non-stationary stochastic process governed by a causal chain spanning demand, control, and mechanical execution. Deviations observed at aggregate meters therefore represent manifestations of upstream technical or behavioural faults rather than isolated numerical outliers.
+Building-energy telemetry is a multivariate, multimodal, and non-stationary stochastic
+process governed by a causal chain spanning demand, control, and mechanical execution
+(see Sections~\ref{subsec:building-energy-multivariate-ts}--\ref{subsec:causal-chain-energy-consumption}).
+Consequently, deviations at aggregate meters typically reflect upstream technical or
+behavioural faults rather than isolated numerical outliers.
 
-From the structural and statistical properties of these data, the following formal requirements for anomaly detection follow:
+From these structural and statistical properties, the following requirements for anomaly
+detection follow (see Sections~\ref{subsec:building-energy-multivariate-ts},
+\ref{subsec:temporal-autocorrelation-persistence}, and~\ref{subsec:communication-artifacts}):
 
 \begin{enumerate}
-	\item \textbf{Probabilistic multivariate modeling}\\
-	Expected behaviour must be represented as a multivariate mixture distribution rather than a deterministic point estimate, in order to capture multimodal operating regimes and cross-variable dependencies.
+	\item \textbf{Probabilistic multivariate modeling}\label{req:probabilistic-multivariate}\\
+	Expected behaviour should be represented probabilistically to capture multimodal
+	operating regimes and cross-variable dependencies (see
+	Section~\ref{subsec:statistical-distribution-stochastic-noise}).
 
-	\item \textbf{Robustness to temporal dependence and persistence}\\
-	Detection must remain stable under strong autocorrelation, seasonal regime shifts, and long-duration persistence, such that sustained deviations are not absorbed into the learned baseline.
+	\item \textbf{Robustness to temporal dependence and persistence}\label{req:temporal-robustness}\\
+	Detection must remain stable under autocorrelation, seasonality, and long-duration
+	persistence such that sustained deviations are not absorbed into the baseline (see
+	Section~\ref{subsec:temporal-autocorrelation-persistence}).
 
-	\item \textbf{Separation of physical faults and digital artifacts}\\
-	Transmission gaps, aggregation spikes, and other digital artifacts must be distinguished from physical anomalies through explicit preprocessing and data-quality handling.
+	\item \textbf{Separation of physical faults and digital artifacts}\label{req:artifact-separation}\\
+	Transmission gaps and aggregation artifacts must be separated from physical anomalies
+	through explicit data-quality handling (see
+	Section~\ref{subsec:communication-artifacts}).
 \end{enumerate}
 
-Furthermore, building-energy telemetry is formally classified as a multivariate, multi-mode time series dominated by contextual point anomalies. Subsequence faults therefore manifest as contextual point deviations at the aggregation horizons relevant for energy monitoring.  
-Persistent deviations present in historical baselines may be absorbed into learned normality (normality drift), representing a fundamental constraint for semi-supervised and unsupervised detection paradigms.
+Building-energy telemetry is dominated by contextual point anomalies at aggregation
+horizons relevant for monitoring (see
+Sections~\ref{subsec:dimensionality-normality-modes} and~\ref{subsec:structural-classes-anomalies}).
+Persistent deviations already present in historical baselines may be absorbed into learned
+normality (normality drift), representing a fundamental constraint of semi-supervised and
+unsupervised paradigms.
