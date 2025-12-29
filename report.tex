@@ -4,7 +4,8 @@
 \usepackage{float}
 
 % Acronyms (no glossary)
-\usepackage{acronym}
+% Only print acronyms that are actually used via \ac/\acs/\acl/\acf.
+\usepackage[printonlyused]{acronym}
 
 % Recommended for biblatex + babel
 \usepackage[autostyle=true]{csquotes}
@@ -58,12 +59,11 @@
 \input{chapters/chapter-4-Methodology}
 \input{chapters/chapter-5-Benchmarking.tex}
 \input{chapters/chapter-6-Implementation.tex}
-
 \input{chapters/chapter-7-Discussion-FutureWorl.tex}
 \input{chapters/chapter-8-Conclusion.tex}
 %% Use letters for the chapter numbers of the appendices.
 \appendix
- 
+
 \input{appendix-a}
 
 \printbibliography[heading=bibintoc]

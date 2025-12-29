@@ -1,40 +1,160 @@
 \chapter{Discussion and Future Work}
 \label{chap:discussion-future}
 
-The evaluation of the integrated system demonstrates the efficacy of combining stochastic forecasting with hierarchical root-cause analysis. However, the transition from a synthetic benchmark to diverse industrial environments reveals specific areas where the methodology can be refined to enhance diagnostic depth and modelling flexibility.
+The evaluation of the integrated system demonstrates that combining probabilistic
+forecasting with hierarchical \ac{RCA} yields actionable, economically interpretable
+anomaly management at portfolio scale. At the same time, the transition from a
+controlled synthetic benchmark to heterogeneous industrial deployments exposes
+limitations in contextual observability, baseline health assumptions, and the
+expressiveness of sequential foundation models. This chapter reflects critically on
+these gaps and outlines concrete directions for strengthening methodological coverage
+and operational robustness.
 
 \section{Critical Reflection on System Design}
 
-The current implementation of root-cause analysis (RCA)\textemdash the process of identifying the origin of a fault\textemdash relies primarily on the statistical attribution of financial impact across sub-meters. While this identifies {where} an anomaly occurs, it does not fully explain {why} the deviation was triggered within the control layer. Future iterations could enhance the RCA by integrating the operational states of high-consumption assets. By analysing control signals, such as valve positions or modulation frequencies, the system could verify whether a consumption spike is a legitimate response to a manual override or a failure of the underlying control logic.
+The current \ac{RCA} implementation localizes anomalies primarily through signed
+financial attribution across sub-meters (Section~\ref{sec:root-cause-analysis}).
+This is effective for answering \emph{where} excess consumption accumulates and
+supports \textbf{O\ref{obj:hierarchical-diagnosability}} and
+\textbf{O\ref{obj:economic-interpretability}}, but it provides limited insight into
+\emph{why} the deviation occurred within the control layer
+(Foundations Section~\ref{sec:building-energy-data} / causal chain discussion in
+Section~\ref{subsec:causal-chain-energy-consumption}). In many facilities, the same consumption pattern can arise
+from distinct causes (e.g., manual override, schedule misconfiguration, actuator
+fault). Future iterations should therefore extend diagnostics beyond metering
+attribution by incorporating \emph{operational state signals} for major consumers
+(e.g., valve positions, fan speeds, compressor staging, setpoints). This would enable
+causal consistency checks such as: ``is the spike explained by a corresponding change
+in control demand?'' and would strengthen context-aware interpretation
+(\textbf{O\ref{obj:contextual-fidelity}}) while improving the explainability of
+high-impact events.
 
-Furthermore, the feature set utilized in the \texttt{ADPipeline} is currently restricted to meteorological data and temporal indicators. Empirical evidence from the BOPTEST correlation analysis (see Figure~\ref{fig:feature-importance}) indicates that occupancy\textemdash represented by people count\textemdash is one of the most significant drivers of energy consumption. The absence of real-time occupancy telemetry in many tenant buildings represents a significant information gap. The system should be expanded to allow tenants to select specific attributes, such as CO$_2$ levels or access-control logs, to be included as exogenous features for customized detection models.
+A second design boundary is the \emph{scope of anomaly classes}. The proposed framework
+is strong at detecting deviations in consumption relative to context-conditioned
+baselines, but it may not
+detect \emph{logic conflicts that are consistently present in the baseline}, such as
+simultaneous heating and cooling, chronic simultaneous reheat, or persistent
+inefficiencies that have become ``normal'' operation. This is not a modelling failure
+but a baseline-definition limitation and directly relates to
+\textbf{O\ref{obj:persistence-preservation}}.
 
-\section{Data Integrity and User-Centric Baseline Selection}
+\section{Robust Baseline Health Without Manual User Selection}
+\label{sec:baseline-health-future}
 
-The current modelling approach assumes that all historical data preceding the activation of an anomaly-detection licence represents a healthy operational state. This assumption is often violated in real-world facilities where persistent faults may already be present. To address this, an interface for manual baseline configuration is proposed. This would enable facility managers to designate specific historical intervals as {gold-standard} periods.
+The current production assumption is that historical data preceding activation is
+sufficiently healthy for establishing a normative reference. In real buildings this
+is frequently violated: persistent faults may exist for months, and ``normal'' may
+already include inefficiency (Foundations Sections~\ref{subsec:temporal-autocorrelation-persistence}
+and~\ref{subsec:statistical-distribution-stochastic-noise} on non-stationarity and
+persistence; Section~\ref{sec:critique-sequential} on contamination effects). A manual
+``gold-standard baseline'' UI would shift responsibility to the operator and does not
+scale across tenants, contradicting the deployment objective
+\textbf{O\ref{obj:horizontal-scalability}}.
 
-Implementing this with the current Chronos-2 architecture presents a technical challenge, as the model requires a continuous temporal sequence immediately preceding the target timestamp. To utilize a non-contiguous healthy baseline from a previous year, the system would require a mechanism to translate and align historical timestamps to the current prediction window.
+A more robust direction is to integrate \emph{classical rule-based energy baselining
+and detection} as a complementary layer, as discussed in
+Section~\ref{sec:classical-energy-anomaly-detection}. Rule-based checks (e.g., schedule
+violations, simultaneous heating/cooling, minimum runtime constraints, holiday/weekend
+rules) can be used in two ways:
 
-Additionally, the reliability of the RCA is heavily dependent on the metering density of the building. In facilities with low sub-metering granularity, the system's ability to attribute faults remains limited to large-scale aggregates, highlighting the need for further evaluation on diverse, real-world datasets.
+\begin{enumerate}
+    \item \textbf{Baseline screening:} automatically tag historical intervals as
+    ``likely healthy'' vs.\ ``likely faulty'' and preferentially sample healthy
+    segments for the model context. This reduces the risk that persistent faults are
+    learned as normal and strengthens \textbf{O\ref{obj:persistence-preservation}} and
+    \textbf{O\ref{obj:contextual-fidelity}} without requiring user intervention.
 
-\section{Future Architecture: The Universal Energy Feature Forecaster}
+    \item \textbf{Coverage expansion:} detect fault classes that are not consumption
+    outliers but are operational contradictions (e.g., heating and cooling overlap)
+    even if they were present in the baseline. This provides robustness against
+    unhealthy historical data and complements the probabilistic deviation detector.
+\end{enumerate}
 
-The utilization of Chronos-2 in the current system represents an adaptation of a sequential foundation model for feature-based anomaly detection. While effective, this approach does not fully leverage the model's internal probability distributions for anomaly scoring in the same way a mixture-density network (MDN) does. A significant limitation is the reliance on fixed quantile bounds (for example, $q_{0.99}$), which simplifies the complex multimodal output of the transformer into a binary threshold.
+Operationally, this hybrid approach would yield a more complete anomaly portfolio:
+probabilistic scoring for contextual deviations (weather/occupancy adjusted) and
+deterministic rules for control-logic violations and persistent inefficiencies. The
+combination directly addresses the failure mode described in
+Section~\ref{sec:critique-sequential} (adaptation and contamination) and improves
+diagnostic depth beyond pure metering attribution.
 
-\subsection{In-Context Zero-Shot Modelling}
+\section{Context and Modality Expansion}
 
-A proposed architectural shift involves the development of a specialized foundation model designed as a universal energy feature forecaster. Instead of predicting a sequence based on recent history, this model would utilize in-context learning (ICL). In this paradigm, the model is provided with a set of baseline features and their corresponding target values as context, regardless of their temporal proximity to the current timestamp. This would allow the model to ingest healthy baseline data from a different season or a different year as a direct reference for the current prediction task.
+The current implementation focuses on electricity meters enriched with meteorological
+covariates. A natural extension is to generalize the same pipeline to additional
+utilities (e.g., gas, water, thermal energy, and emissions-related signals), thereby
+broadening applicability while preserving the same methodological objectives of
+context-conditioned baselines and signed impact quantification
+(\textbf{O\ref{obj:contextual-fidelity}}, \textbf{O\ref{obj:economic-interpretability}}).
 
-\subsection{Probabilistic Anomaly Scoring}
+\section{Future Architecture: Universal Energy Feature Forecaster}
+\label{sec:universal-feature-forecaster}
 
-The proposed model would retain the token-based probability output of the Chronos architecture but utilize the full distribution to calculate an anomaly score. By computing the negative log-likelihood (NLL) of an observed value across all predicted tokens, the system would achieve a sensitivity comparable to the MDN while maintaining the zero-shot generalization of a foundation model.
+Chronos-2 was selected for deployment due to its operational scalability and robust
+quantile outputs (Section~\ref{sec:model-selection-rationale}), but the implementation
+also exposes structural limitations of sequential time-series foundation models:
 
-This architecture would also enable comparative baseline analysis without retraining. For example, an operator could predict March consumption using both January and February baselines to quantify the resulting energy savings from efficiency measures implemented in February. In doing so, the anomaly-detection system would evolve from a pure fault detector into a broader decision-support tool for evaluating building-decarbonization strategies.
+\begin{itemize}
+    \item \textbf{Sequence constraint:} inference requires temporally contiguous
+    context immediately preceding the forecast timestamp, limiting the ability to use
+    non-contiguous ``healthy'' reference segments (Section~\ref{sec:baseline-health-future}).
 
-\section{Reflections on Energy Anomaly Benchmarking}
+    \item \textbf{Autoregressive sensitivity:} sequential dependence can amplify
+    short-term autocorrelation and induce adaptation effects (Section~\ref{sec:critique-sequential}),
+    requiring mitigation logic in production.
 
-The experimental evaluation conducted within this research represents a foundational step towards a standardized benchmarking framework for energy-specific anomaly detection. It highlights the necessity for datasets that prioritize \textbf{contextual anomalies}\textemdash deviations that are only anomalous relative to external variables such as weather or occupancy\textemdash over simple point deviations. By utilizing the \textbf{volume under the surface of the precision-recall curve (VUS-PR)}, the benchmark addresses the inherent temporal characteristics of industrial energy faults, which frequently persist over extended durations.
+    \item \textbf{Limited distribution access:} forecasts are primarily consumed as
+    quantile bounds, which enables calibrated envelopes but does not expose an
+    explicit multimodal density comparable to \acp{MDN} (Sections~\ref{subsec:mdn-solution}
+    and~\ref{sec:md-anomaly-scoring}).
+\end{itemize}
 
-However, the current benchmarking methodology reveals several opportunities for improvement. While the results provide a comparative overview, the absence of exhaustive \textbf{hyperparameter tuning}\textemdash the process of optimizing the internal parameters of a model to achieve peak performance\textemdash for many baseline methods potentially masks their true detection capabilities. Furthermore, the protocol for comparing zero-shot \textbf{foundation models}\textemdash large-scale models pre-trained on diverse datasets to perform tasks without site-specific training\textemdash against traditional supervised methods requires further formalization.
+A forward-looking direction is a specialized foundation model designed explicitly as a
+\emph{universal energy feature forecaster}. Instead of next-step sequence prediction,
+the model would perform conditional regression from \emph{context features} to a target
+distribution:
+\[
+p(y \mid \mathbf{x}, \mathcal{B}),
+\]
+where $\mathbf{x}$ are covariates (weather, calendar, occupancy proxies, operational
+state) and $\mathcal{B}$ is an in-context baseline set of feature--target examples.
+Critically, $\mathcal{B}$ would not need to be temporally contiguous or adjacent to
+the forecast time; it could be composed from automatically screened healthy segments
+across the year (Section~\ref{sec:baseline-health-future}). This directly targets
+\textbf{O\ref{obj:contextual-fidelity}}, \textbf{O\ref{obj:drift-robustness}}, and
+\textbf{O\ref{obj:persistence-preservation}} by decoupling the normative reference
+from immediate sequential inputs.
 
-Future benchmarking efforts must ensure that all models are evaluated under optimal configurations to support a scientifically robust comparison. Such a refined framework will serve as a vital tool for the objective validation of emerging architectures in the building-automation sector.
+\subsection{Mixture-Distribution Output and Distribution-Aware Scoring}
+
+To recover the expressiveness of mixture modelling without per-meter training, the
+model should output an explicit multimodal density (e.g., token-mixture or continuous
+mixture parameters). This would enable likelihood-based and \ac{DQ}-based anomaly
+scoring (Section~\ref{sec:md-anomaly-scoring}) with time-comparable severity scaling,
+while keeping the zero-shot generalization benefits emphasized in
+Section~\ref{sec:model-selection-rationale}. In effect, this would combine the
+portfolio robustness of \acp{TSFM} with the distributional fidelity of \acp{MDN},
+strengthening \textbf{O\ref{obj:distributional-validity}} without the instability and
+coverage gaps observed in trainable mixture architectures.
+
+\subsection{Decision Support and IPMVP-Style Verification}
+
+A feature-conditional, baseline-set forecaster also enables systematic baseline
+comparison without retraining: the same operating point (same covariates $\mathbf{x}$)
+can be evaluated under multiple baseline contexts $\mathcal{B}_1,\mathcal{B}_2$ to
+quantify the expected change attributable to interventions. This naturally aligns with
+Measurement and Verification practices such as the \ac{IPMVP}: predicted counterfactual consumption
+under a pre-intervention baseline can be compared against a post-intervention baseline
+to estimate savings under matched conditions. This extends the system beyond fault
+detection into continuous efficiency verification, directly reinforcing the economic
+motivation of Chapter~\ref{chap:introduction} and strengthening
+\textbf{O\ref{obj:economic-interpretability}} at portfolio scale.
+Figure~\ref{fig:ipmvp-overview} summarizes the \ac{IPMVP} comparison workflow that underpins
+these verification steps~\parencite{ipmvp-protocol}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{images/IPMVP.png}
+\caption{\ac{IPMVP} verification workflow across baseline and reporting periods, adapted from \textcite{ipmvp-protocol}.}
+\label{fig:ipmvp-overview}
+\end{figure}
+

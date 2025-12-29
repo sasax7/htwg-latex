@@ -1,12 +1,70 @@
-\chapter{Conclusion}
-\label{chap:conclusion}
+\chapter{Conclusion}\label{chap:conclusion}
+This thesis investigated how portfolio-scale building-energy anomaly detection can be
+made both operationally deployable and economically actionable. Departing from
+threshold-based monitoring and deterministic residual detectors (Section~\ref{sec:critique-sequential}),
+the problem was formulated as \ac{MCAD} under multimodality and non-stationarity
+(Foundations Sections~\ref{subsec:dimensionality-normality-modes}
+and~\ref{subsec:statistical-distribution-stochastic-noise}), with the explicit requirement
+that detected deviations be (i) probabilistically well-defined, (ii) monetarily
+quantifiable, and (iii) diagnostically localizable within building hierarchies
+(Sections~\ref{sec:md-anomaly-scoring},~\ref{sec:financial-impact}, and~\ref{sec:root-cause-analysis}).
 
-The research conducted in this thesis successfully established a robust methodology and technical framework for the automated detection and quantification of energy anomalies in building environments. By addressing the statistical complexities of building telemetry—specifically its non-stationary and multi-modal nature—the project provided a solution that transcends the limitations of traditional deterministic forecasting.
+Methodologically, the work showed why sequential autoregressive detectors are
+structurally brittle for sustained building faults: anomalous values contaminate
+sliding windows, error propagates, and long anomalies can be adapted away
+(Section~\ref{sec:critique-sequential}). These failure modes motivate
+context-conditioned baselines and distribution-aware scoring that remain meaningful
+across regime changes (Sections~\ref{sec:inference-time-imputation}
+and~\ref{sec:md-anomaly-scoring}).
+To support scientific comparison under building-relevant anomaly semantics, a
+domain-specific benchmark was constructed using \ac{BOPTEST}, providing labeled,
+contextual fault scenarios with seasonal segmentation and realistic anomaly
+prevalence (Sections~\ref{sec:benchmark-design} and~\ref{sec:benchmark-anomalies}).
 
-The investigation into predictive modelling paradigms revealed that standard sequential forecasting is susceptible to error propagation and the adaptation paradox. It was shown that autoregressive models often incorporate anomalous data into their internal state, which leads to signal instability and the masking of sustained faults. To resolve these issues, a stochastic approach was developed that utilizes the \textbf{Chronos-2} foundation model within a feature-driven inference strategy. This methodology establishes a probabilistic normative operational band, allowing for the reliable identification of \textbf{Multivariate Context Point Anomalies (MCPA)}\textemdash deviations that are only identifiable through the joint analysis of consumption and exogenous drivers such as weather and occupancy.
+Empirically, the benchmark results reinforced a central design claim: in building
+energy telemetry, contextual drivers can be more reliable than autoregressive
+history for establishing normative behavior (Section~\ref{sec:comparative-model-performance}).
+Classical \ac{CNN} baselines with autoregressive windows performed poorly despite their
+strong performance in generic multivariate benchmarks, whereas a feature-only \ac{CNN}
+relying on exogenous context achieved markedly higher detection scores
+(Section~\ref{sec:comparative-model-performance}). Across up to 16{,}979 runs per model,
+the hybrid \texttt{CNN\_\allowbreak{}MDN}~achieved the highest mean \ac{VUS-PR}~under stable
+long-horizon training (Section~\ref{subsec:stochastic-hybrid-architectures}), while
+mixture-density components exhibited non-trivial initialization and coverage sensitivity
+across meters (Section~\ref{subsec:training-stability-baselines}), highlighting the
+practical importance of robustness under limited tuning budgets.
 
-The technical realization was achieved through a distributed, polyglot architecture. A high-performance \textbf{Scala} microservice managed multi-tenant isolation and data orchestration, while a \textbf{Python} endpoint hosted on \textbf{Azure Machine Learning} provided the required predictive capacity. The integration of a hierarchical \textbf{Root Cause Analysis (RCA)} and \textbf{Generative AI} synthesis transformed raw detection results into actionable operational intelligence. It was demonstrated that by attributing financial impact to specific assets and generating natural-language remediation steps, the system provides facility managers with a transparent tool for energy waste mitigation.
+On the deployment axis, the thesis delivered a production-grade implementation inside
+the Eliona platform (Chapter~\ref{chap:implementation}): a containerized Scala
+orchestration service and a Python forecasting endpoint integrated in a multi-tenant
+environment with strict tenant scoping, telemetry integrity handling, conservative
+signed impact quantification, and hierarchy-aware root cause attribution
+(Sections~\ref{sec:financial-impact} and~\ref{sec:root-cause-analysis}). The diagnostic
+outputs are surfaced through role-aware workflows (alert triage, analytic overlays,
+drill-down detail views) and are complemented by an \ac{LLM} layer restricted to
+post-hoc semantic synthesis, preserving traceability by keeping detection and scoring
+deterministic (Section~\ref{sec:root-cause-analysis}).
 
-The implementation of specialized frontend modules—including the anomalies list, status management, and temporal heatmaps—ensures that detection events are integrated into standard maintenance workflows. The capacity for human-in-the-loop feedback, where users validate anomalies as confirmed or false, establishes a mechanism for continuous data cleansing and model refinement. This ensures that the system remains accurate as building characteristics evolve over time.
+Taken together, the results support three main conclusions. First, building-energy
+anomaly detection should be treated as a contextual and distributional modelling
+problem rather than a point-residual thresholding task, because multimodal regimes
+and non-stationarity dominate real operations (Foundations Section~\ref{sec:building-energy-data}
+and Section~\ref{sec:md-anomaly-scoring}). Second, portfolio-scale value requires
+economic interpretability and localization (Sections~\ref{sec:financial-impact}
+and~\ref{sec:root-cause-analysis}): without signed impact and hierarchical attribution,
+detection signals remain difficult to operationalize in maintenance and optimization
+workflows. Third, evaluation must reflect persistence and contextuality
+(Sections~\ref{sec:critique-sequential} and~\ref{sec:systemic-benchmarking-challenges});
+otherwise, reported improvements risk being benchmark artifacts rather than deployable
+capability.
 
-Ultimately, this research moved the \textbf{Eliona} platform from a state of reactive alarm management to proactive, intelligence-driven energy monitoring. The shift from point-based detection to stochastic distribution modeling enables a precise calculation of financial residuals, providing organizations with quantifiable data to support their sustainability and decarbonization objectives. While future work remains regarding the inclusion of control-layer states and the development of in-context forecasters, this project provides a scientifically validated foundation for the next generation of energy management systems in the building-automation sector.
+Finally, the work clarifies where future progress is most impactful. Hybridizing the
+probabilistic detector with complementary rule-based checks, as established in
+classical energy monitoring, is a direct path to stronger baseline-health robustness
+and broader fault-class coverage (Section~\ref{sec:classical-energy-anomaly-detection}
+and Section~\ref{sec:baseline-health-future}). Beyond this, a compelling research
+direction is a universal energy feature forecaster that removes the sequence-contiguity
+constraint of current time-series foundation models and exposes explicit multimodal
+densities for distribution-aware anomaly scoring—while enabling standardized baseline
+comparison aligned with measurement and verification practice (e.g., \ac{IPMVP})
+\parencite{ipmvp-protocol} (Section~\ref{sec:universal-feature-forecaster}).

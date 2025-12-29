@@ -1,281 +1,167 @@
 \chapter{Implementation}
 \label{chap:implementation}
+This chapter summarizes the technical realization of the proposed anomaly detection
+framework and its integration into the Eliona platform. The implementation is
+structured to operationalize the methodological and system-level objectives defined
+in Chapter~\ref{chap:methodology}.
 
-The previous chapter established the methodological framework and the operational requirements for the anomaly detection system. This chapter details the technical realization of these concepts, focusing on the software stack, the integration into the Azure ecosystem, and the internal orchestration logic of the Scala microservice and the Python analytics endpoint.
-
-\section{Integrated System Architecture and Technology Stack}
-
-The implementation utilizes a polyglot approach to leverage the specific strengths of different programming paradigms. While the orchestration and data processing are handled by a Scala microservice to ensure high-performance parallelism, the predictive modeling is realized through a Python endpoint optimized for machine learning.
-
-\subsection{Deployment and Cluster Integration}
-
-The system is designed as a modular Docker container that operates within the same \ac{AKS} cluster as the core Eliona microservices. This co-location ensures low-latency communication between the detection logic and the primary data storage. The architecture remains environment-agnostic, for on-premise deployments, the entire stack, including the analytics endpoint, can be executed locally as a suite of interconnected containers.
-
-\begin{figure}[htbp]
+\section{System Integration Overview}
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/first-high-level-architecture.jpg}
-	\caption{High-level deployment of the anomaly detection microservice and Python analytics endpoint within the Eliona and Azure ecosystems.}
+	\includegraphics[width=0.8\textwidth]{images/first-high-level-architecture.jpg}
+	\caption{High-level deployment of the anomaly detection microservice and Python prediction endpoint within the Eliona and Azure ecosystems.}
 	\label{fig:implementation-architecture}
 \end{figure}
+The framework is implemented as two tightly coupled services:
 
-\subsection{Data Orchestration and Persistence}
+a Scala-based orchestration microservice responsible for multi-tenant data processing, hierarchical asset handling, and anomaly persistence, and
 
-The microservice establishes a closed-loop data pipeline with the Eliona backend:
+a Python-based analytics endpoint hosting the Chronos-2 foundation model for probabilistic forecasting.
 
-\begin{description}
-	\item[Ingestion] Telemetry data is retrieved directly from the centralized PostgreSQL/TimescaleDB instance.
-	\item[Analytics loop] After performing data preparation, the microservice transmits a request to the method endpoint.
-	\item[Synthesis and storage] If the returned predictions indicate a deviation, the service creates an anomaly object. These objects are persisted in the database, where they become accessible to the Eliona frontend via API~V1 for visualization and reporting.
-\end{description}
+Both services are containerized and deployed within the same Kubernetes environment as the Eliona backend to ensure low-latency communication and horizontal scalability (\textbf{O\ref{obj:horizontal-scalability}}). Logical tenant separation is enforced at all processing stages (\textbf{O\ref{obj:multi-tenant-isolation}}).
 
-\section{Chronos-2 Analytics Endpoint}
+\section{Data Pipeline and Contextual Enrichment}
 
-The analytical core is implemented as a dedicated Python microservice hosting the
-Chronos-2 transformer model. The service processes batched multivariate time series,
-receiving historical context and exogenous covariates and returning probabilistic
-quantile forecasts that define the regime-conditioned normative envelope.
+Telemetry is retrieved from the centralized Eliona database and filtered using asset metadata to select economically relevant energy meters. To ensure contextual fidelity (\textbf{O\ref{obj:contextual-fidelity}}), each time series is enriched with site-localized weather features prior to inference.
 
-For production deployment, the service is exposed as a managed online endpoint in
-Azure Machine Learning. This provides automated horizontal scaling, versioned model
-management, and containerized deployment, enabling seamless operation in both cloud
-and on-premise environments while supporting non-stationary adaptation requirements.
+Data integrity is preserved through explicit gap handling and recovery-spike redistribution, preventing non-physical anomaly artifacts caused by telemetry transmission effects (\textbf{O\ref{obj:data-integrity-robustness}}).
 
-\section{Scala Microservice: Multi-Tenant Orchestration}
+\section{Probabilistic Inference and Anomaly Quantification}
 
-System-wide orchestration is implemented as a dedicated Scala microservice that
-coordinates data ingestion, contextual enrichment, anomaly scoring, and tenant-level
-isolation. Predictive inference is delegated to the Python Chronos-2 endpoint, while
-the Scala layer performs all asynchronous I/O, scheduling, and hierarchical
-orchestration.
+Chronos-2 is queried in batch mode to produce calibrated quantile forecasts for all selected meters. Distribution-free quantile envelopes serve as normative operational bands, fulfilling distributional validity under multimodal and heavy-tailed regimes (\textbf{O\ref{obj:distributional-validity}}).
 
-Scala is selected for its strong static typing and high-throughput concurrency model,
-enabling safe parallel processing of large multivariate telemetry tensors and complex
-building ontologies under multi-tenant operation.
+To reduce autoregressive reliance, timestamps are evaluated via an $h$-step forecast
+(e.g., $h=10$) using context and known covariates. Detected anomalies are not fed
+back into the context window but replaced by the predicted expected value, preserving
+persistence (\textbf{O\ref{obj:persistence-preservation}}).
 
-\subsection{Multi-Tenant Lifecycle Management}
+Anomalies are triggered when observations exceed the extreme quantile envelope. Signed financial impact is computed conservatively using regime-consistent quantile baselines and tenant-specific energy prices, yielding physically defensible monetary loss or savings estimates (\textbf{O\ref{obj:economic-interpretability}}).
 
-Tenants are managed through a centralized orchestration layer that enforces strict
-logical isolation across organizations. Independent worker pipelines are instantiated
-per tenant and operate on disjoint telemetry scopes, ensuring that ingestion,
-processing, and anomaly attribution remain isolated across building portfolios.
+\section{Hierarchical Root Cause Attribution and Action Synthesis}
 
-Tenant lifecycles are synchronized periodically with licensing and configuration
-state. Worker pipelines are automatically instantiated, restarted, or terminated in
-response to tenant state changes, ensuring fault tolerance and consistent multi-tenant
-operation without manual intervention.
+When anomalies are detected on aggregate meters, subordinate assets are evaluated within the dual asset ontology. Signed impacts are aggregated by physical and functional hierarchies, enabling localization of deviations to concrete subsystems (\textbf{O\ref{obj:hierarchical-diagnosability}}).
 
-\section{Data Acquisition and Processing Pipeline}
+For high-impact events, the resulting diagnostic payload is passed to an \ac{LLM}-based interpretation layer, which converts structured evidence into human-readable explanations and recommended mitigation actions. The \ac{LLM} is strictly confined to semantic synthesis and does not influence detection or scoring logic.
 
-Raw building telemetry is transformed into structured model inputs through a
-multi-stage pipeline that performs attribute selection, contextual enrichment, and
-robust data conditioning.
+\section{Tenant Configuration and Reproducibility}
 
-\subsection{Attribute Selection and Hierarchical Scoping}
+Tenant-specific parameters control sensitivity thresholds, financial filtering, and energy price calibration. These configurations ensure that detection behavior and alerting thresholds can be aligned with individual operational risk profiles while preserving strict tenant isolation and reproducibility of evaluation results (\textbf{O\ref{obj:multi-tenant-isolation}}, \textbf{O\ref{obj:horizontal-scalability}}).
 
-Energy-relevant telemetry channels are identified using semantic attribute metadata
-and unit normalization. To ensure operational relevance and computational efficiency,
-attributes with negligible economic impact are excluded. Anomaly detection is
-performed on the upper hierarchy levels (aggregate and floor meters), while
-subordinate assets are retained exclusively for diagnostic attribution.
+\section{Frontend Visualization and User Interaction}
 
-\subsection{Contextual Enrichment}
+The frontend operationalizes the backend outputs by exposing persisted anomaly objects
+as actionable workflows within Eliona’s existing navigation (alerts, analytics, asset
+views). This integration ensures that anomalies can be prioritized by impact
+(\textbf{O\ref{obj:economic-interpretability}}), interpreted in context
+(\textbf{O\ref{obj:contextual-fidelity}}), and localized to concrete subsystems via
+hierarchical drill-down (\textbf{O\ref{obj:hierarchical-diagnosability}}).
 
-External environmental drivers are incorporated via site-localized weather covariates
-derived from geographical coordinates. This contextual enrichment enables
-disambiguation between technical faults and demand variations induced by weather
-conditions.
+\subsection{Anomalies List and Operator Validation}
 
-\subsection{Data Conditioning and Gap Resilience}
+Anomalies are surfaced in the alert center via a dedicated \emph{Anomalies} tab. The
+table provides fast triage using severity, affected asset, timeframe/tags, and signed
+financial impact, enabling impact-driven prioritization
+(\textbf{O\ref{obj:economic-interpretability}}). Operators can assign a validation
+status (e.g., confirmed / false positive) and add comments, supporting long-term trust
+and iterative refinement under non-stationarity (\textbf{O\ref{obj:drift-robustness}}).
 
-Telemetry is aggregated across multiple temporal resolutions and subjected to
-gap-resilient conditioning. Transmission gaps and recovery artifacts are corrected
-through redistribution mechanisms, while integrity flags preserve explicit data
-quality context. Previously detected anomalous values are recursively imputed using
-their predicted medians to prevent contamination of subsequent inference windows.
-
-\subsection{Reactive Synchronization}
-
-Model inputs are refreshed on a reactive schedule aligned with finalized aggregation
-cycles, ensuring that inference is performed exclusively on complete and consistent
-telemetry segments.
-
-\section{Stochastic Inference and Anomaly Quantification}
-
-Anomaly detection is performed by interpreting stochastic quantile forecasts
-produced by Chronos-2 under a feature-driven inference strategy.
-
-\subsection{Feature-Driven Inference}
-
-To avoid sequential adaptation effects, inference is conditioned exclusively on
-historical context and exogenous covariates (weather, occupancy, temporal indicators),
-while the consumption value at the evaluated timestamp is withheld. This enforces
-contextual rather than autoregressive normative modeling.
-
-\subsection{Quantile-Based Scoring}
-
-Requests are batched across meters and temporal resolutions. Chronos-2 returns
-distribution-free quantile envelopes that define regime-conditioned normative bands.
-Extreme quantiles define anomaly boundaries, while central quantiles serve as
-conservative economic baselines.
-
-An anomaly is triggered if the observation lies outside the extreme quantile envelope.
-Signed deviations are measured relative to the central quantile to quantify waste
-or savings under multimodal operating regimes. Deviations below a minimum economic
-threshold are discarded to suppress negligible events.
-
-\section{Hierarchical Root Cause Analysis (RCA)}
-
-Upon detection of an aggregate-level anomaly, all subordinate assets in the functional
-hierarchy are analyzed to localize the physical origin of the deviation.
-
-\subsection{Diagnostic Attribution}
-
-Sub-meter telemetry is re-evaluated to estimate asset-level financial contributions.
-Impacts are attributed both at individual asset level and aggregated by semantic asset
-categories (e.g., HVAC, lighting, plug loads), enabling identification of systematic
-inefficiencies and dominant fault contributors.
-
-\subsection{Localization and Contextual Enrichment}
-
-Attributed root causes are enriched with spatial metadata and localized environmental
-context to support interpretation and remediation planning.
-
-\section{Temporal Collapse and Persistence}
-
-Telemetry is evaluated across multiple temporal resolutions, which may generate
-overlapping anomaly events. A temporal collapse mechanism consolidates lower-resolution
-detections into higher-resolution events, preventing redundant alerts and preserving
-the most conservative financial impact estimate across scales.
-
-\section{AI Synthesis and Action Recommendation}
-
-High-impact anomalies are forwarded to an interpretation layer that synthesizes
-localized diagnostics, financial impact, and contextual metadata into structured
-human-readable explanations and remediation recommendations using a domain-specialized
-large language model (LLM). The LLM operates exclusively at the interpretation layer and
-does not influence detection or scoring logic.
-
-\section{Tenant-Specific Configuration}
-
-Detection sensitivity, financial thresholds, and economic parameters are governed by
-tenant-specific configuration profiles. These profiles enable adaptation to
-organization-specific risk tolerance and energy pricing while preserving strict
-multi-tenant isolation and auditability.
-
-
-
-
-\section{Frontend Integration for Operational Decision Support}
-
-The frontend constitutes the operational interface of the anomaly detection framework.
-It exposes detected anomalies, quantified financial impact, hierarchical root causes,
-and AI-synthesized recommendations in a multi-tenant environment, enabling human
-validation and remediation workflows.
-
-\subsection{Centralized Anomaly Registry and Validation Loop}
-
-Detected anomalies are presented in a centralized registry that supports triage,
-filtering, and prioritization by financial impact, severity, and affected assets
-(Fig.~\ref{fig:anomaly-list}). Human operators can confirm or invalidate anomalies,
-forming a controlled human-in-the-loop feedback channel. Invalidated anomalies are
-excluded from future baseline construction to prevent contamination of normative
-profiles.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/anomaly-list.jpg}
-	\caption{Central anomaly registry supporting prioritization, financial impact
-	assessment, and validation workflows.}
+	\caption{Anomalies list interface in the Eliona frontend, showing key diagnostic metrics, financial impact, and filtering options.}
 	\label{fig:anomaly-list}
 \end{figure}
 
-\subsection{Quantile Visualization and Diagnostic Context}
+\subsection{Analytics Overlays: Quantile Baselines and Point Highlights}
 
-Stochastic normative envelopes and anomalous deviations are visualized directly on
-consumption charts using quantile-based uncertainty bands (Figs.~\ref{fig:anomalies-in-analytics}
-and~\ref{fig:anomaly-analytic-dashboard}). These overlays enable severity assessment
-relative to regime-conditioned baselines rather than absolute residual magnitudes.
+Detection results are embedded into Eliona’s analytics framework to avoid siloed
+tooling. Charts can display anomalous periods and, where resolution matches, point
+highlights together with the model-derived quantile envelope, making probabilistic
+baselines visible (\textbf{O\ref{obj:distributional-validity}}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=1.0\textwidth]{images/anomalies-in-analytics.jpg}
-	\caption{Quantile-based normative envelopes and anomaly overlays within analytics.}
+	\caption{Integrated anomaly-detection analytic within the insight analytics framework, highlighting anomalous periods on the consumption charts.}
 	\label{fig:anomalies-in-analytics}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/anomaly-analytic-in-dashboard.jpg}
-	\caption{Anomaly analytics embedded into operational dashboards.}
+	\includegraphics[width=0.8\textwidth]{images/anomaly-analytic-in-dashboard.jpg}
+	\caption{Anomaly-detection analytic embedded in a customizable dashboard, combining stochastic overlays with other operational widgets.}
 	\label{fig:anomaly-analytic-dashboard}
 \end{figure}
 
-\subsection{Contextual Tooltips and AI Synthesis}
+Tooltips provide a compact summary at the point of inspection (impact, predicted vs.\
+observed, status, and AI-generated explanation/action), bridging detection outputs and
+operator decisions.
 
-Interactive tooltips expose localized financial impact, root cause attribution,
-validation status, and AI-generated recommendations at individual anomalous points
-(Fig.~\ref{fig:anomaly-tooltip}). This supports immediate contextual interpretation.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/Tooltip.png}
-	\caption{Interactive diagnostic tooltip with financial impact and AI synthesis.}
+	\includegraphics[width=0.4\textwidth]{images/Tooltip.png}
+	\caption{Interactive tooltip attached to an anomalous data point, summarizing financial impact, AI explanation, and validation status.}
 	\label{fig:anomaly-tooltip}
 \end{figure}
 
-\subsection{Anomaly Detail View and Action Synthesis}
+\subsection{Detail View and Portfolio Reporting}
 
-A dedicated anomaly detail view consolidates quantitative metrics, hierarchical root
-causes, contextual metadata, and AI-generated remediation guidance into a single
-operational workspace (Fig.~\ref{fig:anomaly-detail-view}), enabling transition from
-detection to remediation.
+A dedicated detail view consolidates evidence required for remediation: impact and
+status, an event-centered chart, contextual diagnostics (e.g., weather), and
+AI-synthesized recommended actions, supporting actionable investigation
+(\textbf{O\ref{obj:hierarchical-diagnosability}}, \textbf{O\ref{obj:contextual-fidelity}}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/anomaly-details-page.jpg}
-	\caption{Integrated anomaly detail view combining financial impact, diagnostics, and
-	AI-generated recommendations.}
+	\includegraphics[width=0.7\textwidth]{images/anomaly-details-page.jpg}
+	\caption{Anomaly detail view aggregating financial impact, validation status, analytic chart, diagnostics, and AI-synthesized recommended actions.}
 	\label{fig:anomaly-detail-view}
 \end{figure}
 
-\subsection{Macro-Level Reporting and Portfolio Analytics}
+For macro-level tracking, an aggregated statistics dashboard summarizes total impact
+and breakdowns by asset type and time patterns, supporting prioritization and outcome
+verification (\textbf{O\ref{obj:economic-interpretability}}).
 
-Portfolio-level dashboards aggregate anomalies across tenants and sites, providing
-executive visibility into financial impact, dominant asset categories, and temporal
-patterns (Fig.~\ref{fig:anomaly-statistics-dashboard}). Heatmap visualizations reveal
-systematic operational inefficiencies across time-of-day and day-of-week regimes.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/anomalies-statistic-dashboard.png}
-	\caption{Portfolio-level anomaly analytics and financial impact aggregation.}
+	\includegraphics[width=0.7\textwidth]{images/anomalies-statistic-dashboard.png}
+	\caption{Anomaly-statistics dashboard providing macro-level KPIs, categorical breakdowns, temporal trends, and site-level aggregation for executive reporting.}
 	\label{fig:anomaly-statistics-dashboard}
 \end{figure}
 
-\subsection{Asset-Scoped Anomaly Integration}
+\subsection{Asset-Level Integration}
 
-Anomalies are integrated into asset detail views to support localized diagnostics and
-historical inspection of deviations at the equipment and zone level
-(Fig.~\ref{fig:anomalies-asset-details}).
+Finally, anomaly information is embedded into the asset detail view via an
+\emph{Anomalies} tab, enabling localized investigation directly within the asset
+context and linking to detailed anomaly views for drill-down
+(\textbf{O\ref{obj:hierarchical-diagnosability}}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/anomalies-in-asset-details.jpg}
-	\caption{Asset-level anomaly integration enabling localized inspection and triage.}
+	\includegraphics[width=0.8\textwidth]{images/anomalies-in-asset-details.jpg}
+	\caption{Asset-detail view with integrated anomalies tab, showing localized statistics, anomaly-type distribution, and historical events for the selected asset.}
 	\label{fig:anomalies-asset-details}
 \end{figure}
 
-\section{Implementation Summary}
-The realized system fulfills the formal design objectives by providing an infinitely
-scalable, cloud-native multi-tenant architecture for portfolio-scale building
-monitoring. It performs stochastic multivariate anomaly detection using
-distribution-free quantile modeling, accurately capturing multimodality and intrinsic
-uncertainty in non-stationary energy telemetry.
 
-The system adapts continuously to evolving operational regimes while preventing
-persistent anomalies from being absorbed into normative baselines through explicit
-human validation mechanisms. Detected deviations are translated into conservative
-financial impact estimates, visualized through interpretable uncertainty envelopes,
-and localized via hierarchical root cause analysis. A domain-specialized large language
-model further synthesizes diagnostic evidence into actionable operational insights,
-completing an end-to-end, economically interpretable anomaly management pipeline.
+\section{Implementation Summary}
+
+The proposed framework is implemented as a containerized Scala orchestration service
+and a Python forecasting endpoint integrated into the Eliona platform. The design
+supports portfolio-scale execution with strict tenant isolation
+(\textbf{O\ref{obj:horizontal-scalability}}, \textbf{O\ref{obj:multi-tenant-isolation}}).
+
+Inference inputs are constructed from contextual regime drivers (e.g., localized
+weather) and validated telemetry, ensuring contextual fidelity and robustness to data
+artifacts (\textbf{O\ref{obj:contextual-fidelity}}, \textbf{O\ref{obj:data-integrity-robustness}}).
+Probabilistic quantile forecasts provide distribution-free uncertainty bands for
+detection under multimodal and heavy-tailed regimes
+(\textbf{O\ref{obj:distributional-validity}}), while persistence is preserved through
+contamination-avoidance and operator validation workflows
+(\textbf{O\ref{obj:persistence-preservation}}, \textbf{O\ref{obj:drift-robustness}}).
+
+Detected anomalies are converted into conservative signed monetary impacts and
+prioritized accordingly (\textbf{O\ref{obj:economic-interpretability}}). \ac{RCA} localizes deviations via the asset ontology and is surfaced through
+integrated frontend drill-down, with an \ac{LLM} restricted to post-hoc explanation
+(\textbf{O\ref{obj:hierarchical-diagnosability}}).
+

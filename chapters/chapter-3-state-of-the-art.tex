@@ -1,6 +1,7 @@
 \chapter{Related Work}
 \label{chap:state-of-the-art}
 \section{Classical Energy Baseline and Rule-Based Detection}
+\label{sec:classical-energy-anomaly-detection}
 Early work on energy anomaly detection in buildings is dominated by deterministic baselines and expert-driven rule systems that encode normative consumption behaviour explicitly. These approaches originate from energy engineering practice and are widely deployed in building management systems due to their transparency and low computational complexity.
 
 Pe\~na et al.~\cite{pena2016rule} present a representative rule-based framework for smart buildings in which energy efficiency indicators are derived from \ac{HVAC} operation and expert knowledge is formalized into a set of anomaly detection rules using data mining techniques. Their system detects predefined inefficiency patterns based on threshold violations and logical conditions applied to multiple sensor streams. While such approaches provide interpretable diagnostics and are well suited for known fault patterns, they rely on static expert rules and lack adaptability to evolving building behaviour, seasonal regime changes, and unseen anomaly types.
@@ -18,7 +19,7 @@ The selection of an appropriate detection methodology is constrained by systemic
 \label{subsec:data-deficiencies}
 \begin{figure}[H]
 \centering
-\includegraphics[width=1.0\textwidth]{images/vus-pr-vs-others.jpg}
+\includegraphics[width=0.9\textwidth]{images/vus-pr-vs-others.jpg}
 \caption{Reliability analysis of evaluation measures across different anomaly prediction scenarios. The red segment at the top represents the ground truth anomaly label, followed by various prediction signals (S1--S12 and random). The adjacent table indicates the resulting scores for threshold-independent and threshold-dependent metrics. Adapted from Liu and Paparrizos~\cite{liu2024elephant}.}
 \label{fig:metric-reliability}
 \end{figure}
@@ -31,7 +32,7 @@ The ``illusion of progress'' is further attributed to point-wise metrics like \a
 \subsection{Benchmark Evaluation and Model Hierarchy}
 \begin{figure}[H]
 \centering
-\includegraphics[width=1.0\textwidth]{images/benchmarkwinners.jpg}
+\includegraphics[width=0.9\textwidth]{images/benchmarkwinners.jpg}
 \caption{Accuracy evaluation of the top 12 methods on (a) univariate \ac{TSB-AD-U} and (b) multi-target \ac{TSB-AD-M} datasets based on the \ac{VUS-PR} metric. Adapted from Liu and Paparrizos~\cite{liu2024elephant}.}
 \label{fig:benchmark-ranking}
 \end{figure}
@@ -111,30 +112,29 @@ mixture densities, which are structurally required to represent the multimodal o
 of buildings.
 
 
-\section{Synthesis of Related Work}
-\label{sec:synthesis-related-work}
+\subsection{Model Selection Rationale}
+\label{sec:model-selection-rationale}
 
-The reviewed literature indicates a transition from deterministic expert systems and
-regression baselines toward probabilistic deep learning architectures for time-series
-anomaly detection. While rule-based and regression-based methods offer interpretability
-and low computational overhead, they adapt poorly to multimodal and non-stationary
-building operation. In parallel, the validity of reported progress is often undermined
-by benchmark pathologies (e.g., mislabeling and run-to-failure bias) and by point-wise
-metrics such as \ac{PA-F1}, motivating robust, threshold-independent evaluation via
-\ac{VUS-PR}.
+Although \texttt{CNN\_\allowbreak MDN} attains the highest mean \ac{VUS-PR} in most benchmark
+configurations, Chronos-2 is selected as the primary deployment model because it best
+satisfies the thesis objectives under portfolio-scale constraints. In particular, the
+zero-shot, context-conditioned operating mode of \acp{TSFM} directly supports
+~\textbf{O\ref{obj:drift-robustness}} by adapting to baseline drift and abrupt
+regime changes through recent-context conditioning rather than scheduled per-meter
+retraining pipelines. This simultaneously strengthens practical scalability
+(~\textbf{O\ref{obj:horizontal-scalability}}) and preserves context-conditioned
+normality (~\textbf{O\ref{obj:contextual-fidelity}}).
 
-Deep generative models (e.g., OmniAnomaly) and compact neural architectures (e.g., CNNs
-and variational autoencoders) frequently dominate benchmark leaderboards in
-reconstruction- or residual-based formulations, and recent energy benchmarks show that
-models trained from scratch can outperform \ac{TSFM} on labeled datasets such as
-\ac{LEAD 1.0}. Conversely, \ac{TSFM} (e.g., Chronos-2) provide strong zero-shot
-capabilities and native distributional forecasting, making them operationally attractive
-for large portfolios.
+Trainable baselines require explicit per-meter fitting and repeated retraining to track
+non-stationarity, implying fragile orchestration at scale. Persisting anomalies are
+prevented from contaminating the adaptive reference by applying Strategy~B from
+Section~\ref{sec:inference-time-imputation}, which operationalizes
+~\textbf{O\ref{obj:persistence-preservation}} in the deployed pipeline.
 
-Crucially, existing comparisons are largely confined to snapshot-style benchmarks and
-deterministic residual paradigms that do not represent multivariate contextual
-inefficiencies, regime-dependent multimodality, or long-term baseline drift. This leaves
-open whether the reported dominance of compact models persists under realistic
-non-stationary building regimes. Accordingly, this thesis evaluates probabilistic,
-context-conditioned detection under controlled regime shifts and adopts a distributional
-formulation that links detection to economic impact and hierarchical root-cause attribution.
+While Chronos-2 does not expose an explicit multimodal mixture density, it provides
+calibrated, distribution-free quantile bounds (Section~\ref{subsec:quantile-bounds}),
+which satisfy ~\textbf{O\ref{obj:distributional-validity}} for deployment. These
+quantile envelopes enable \ac{QBB} anomaly scoring without parametric assumptions and
+avoid the instability and coverage gaps observed for mixture-density architectures,
+while remaining competitive in detection accuracy.
+

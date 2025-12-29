@@ -268,7 +268,7 @@ Figure~\ref{fig:seq-24h-instability} illustrates this phenomenon using a model t
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/seq-24h-window-plus-features.png}
+	\includegraphics[width=0.8\textwidth]{images/seq-24h-window-plus-features.png}
 	\caption{Prediction behavior of a model using a 24~h historical window plus time features. The top panel shows actual vs. predicted values; the bottom panel shows the difference-based anomaly score. Note the erratic predictions even after the anomaly ends as the unseen data propagates through the sliding window.}
 	\label{fig:seq-24h-instability}
 \end{figure}
@@ -283,7 +283,7 @@ Figure~\ref{fig:seq-short-adaptation} shows a model trained only on the past fiv
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/seq-5h-window-only.png}
+	\includegraphics[width=0.8\textwidth]{images/seq-5h-window-only.png}
 	\caption{Prediction behavior of a model using only a short (5-step) historical window. The model correctly identifies the onset of anomalies but rapidly adapts to the new level, causing the anomaly score to drop back to near zero while the anomaly is still ongoing.}
 	\label{fig:seq-short-adaptation}
 \end{figure}
@@ -308,7 +308,7 @@ Figure~\ref{fig:features-only} demonstrates this approach. The prediction remain
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/features-only.png}
+	\includegraphics[width=0.8\textwidth]{images/features-only.png}
 	\caption{Behavior of a features-only model (no historical consumption input). The prediction relies solely on context (time/weekend), resulting in a stable baseline and accurate detection of sustained anomalies without adaptation.}
 	\label{fig:features-only}
 \end{figure}
@@ -321,7 +321,7 @@ Figure~\ref{fig:seq-corrected} applies this logic to the unstable 24-hour window
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/seq-24h-window-plus-features-corrected.png}
+	\includegraphics[width=0.8\textwidth]{images/seq-24h-window-plus-features-corrected.png}
 	\caption{The same 24-hour window model from Figure~\ref{fig:seq-24h-instability}, but applied with inference-time imputation. When an anomaly is detected, the predicted value replaces the actual value in the sliding window for future steps. This prevents error propagation and maintains a high anomaly score throughout the event.}
 	\label{fig:seq-corrected}
 \end{figure}
@@ -335,7 +335,7 @@ To isolate the effect of distributional assumptions on anomaly detection, a synt
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-model-comparison.png}
+	\includegraphics[width=0.8\textwidth]{images/variable-shift-model-comparison.png}
 	\caption{Predicted means over the Variable Shift horizon. Dense, Gaussian, and \ac{MDN} models track the two regimes, masking the scoring deficiencies discussed in Sections~\ref{subsec:mse-failure}--\ref{subsec:mdn-solution}.}
 	\label{fig:comparison-means}
 \end{figure}
@@ -347,7 +347,7 @@ Dense regressors trained with \ac{MSE} converge toward the global average of bot
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-dense-panel.png}
+	\includegraphics[width=0.8\textwidth]{images/variable-shift-dense-panel.png}
 	\caption{Dense regressor residuals over the Variable Shift dataset. The mid-range prediction inflates anomaly scores for legitimate operating states, while the stuck-at-$5$ fault yields a small residual.}
 	\label{fig:dense-failure}
 \end{figure}
@@ -359,14 +359,14 @@ A single-component Gaussian attempts to reconcile bimodality by inflating its va
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-gaussian-panel.png}
+	\includegraphics[width=0.8\textwidth]{images/variable-shift-gaussian-panel.png}
 	\caption{Absolute log-likelihood trace for the single-Gaussian predictor. The stuck-at-$5$ anomaly aligns with the high-likelihood center, suppressing the score.}
 	\label{fig:gaussian-panel}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-gaussian-heatmap.png}
+	\includegraphics[width=0.7\textwidth]{images/variable-shift-gaussian-heatmap.png}
 	\caption{Per-timestep normalized \ac{PDF} for the Gaussian model. High probability mass accumulates between the actual clusters, illustrating the variance-stretching paradox.}
 	\label{fig:gaussian-heatmap}
 \end{figure}
@@ -378,14 +378,14 @@ Mixture Density Networks address both issues by learning multiple kernels simult
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-panel.png}
+	\includegraphics[width=0.8\textwidth]{images/variable-shift-mdn-panel.png}
 	\caption{\ac{MDN} absolute log-likelihood trace. The stuck-at-$5$ anomaly triggers a sustained spike because the value resides in a low-probability region between mixture components.}
 	\label{fig:mdn-panel}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-heatmap.png}
+	\includegraphics[width=0.7\textwidth]{images/variable-shift-mdn-heatmap.png}
 	\caption{\ac{MDN} normalized \ac{PDF} heatmap. Two distinct high-probability ridges align with the real operating modes, while the middle band remains improbable.}
 	\label{fig:mdn-heatmap}
 \end{figure}
@@ -402,7 +402,7 @@ Figure~\ref{fig:variable-shift-mdn-scores} extends the \ac{MD} perspective by ov
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/variable-shift-mdn-multi-scores-panel.png}
+	\includegraphics[width=0.9\textwidth]{images/variable-shift-mdn-multi-scores-panel.png}
 	\caption{Comparison of anomaly scoring methods derived from a mixture distribution (\ac{MD}) under a bimodal operating regime with an injected intermediate anomaly. The top panel shows the predictive density together with the actual observation and the \ac{MD} mean. Subsequent panels compare mean residuals, Quantile Based scores, \ac{NLL}, and the proposed \ac{DQ} scores and severities.}
 	\label{fig:variable-shift-mdn-scores}
 \end{figure}

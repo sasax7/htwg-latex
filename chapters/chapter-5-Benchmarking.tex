@@ -21,7 +21,7 @@ Contextual features include weather variables, occupancy counts, calendar indica
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.9\textwidth]{images/feature-improtance.png}
+	\includegraphics[width=0.7\textwidth]{images/feature-improtance.png}
 	\caption{Empirical Pearson correlation of contextual and external drivers with the main electricity meter over the created dataset from \ac{BOPTEST}.}
 	\label{fig:feature-importance}
 \end{figure}
@@ -35,7 +35,7 @@ Synthetic perturbations emulate realistic operational, control, and contextual f
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.92\textwidth]{images/anomaly-dataset-examples.png}
+	\includegraphics[width=0.7\textwidth]{images/anomaly-dataset-examples.png}
 	\caption{Representative sub-meter excerpts from the curated benchmark slices (fall spike, spring pattern shift, summer off-hours). Red markers indicate anomaly windows where the targeted device deviates from its baseline regime.}
 	\label{fig:anomaly-dataset-examples}
 \end{figure}
@@ -104,14 +104,14 @@ Figure~\ref{fig:mdn-dense-cnn-baseline-comparison} summarizes the aggregate comp
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/mdn-dense-cnn-baseline-comparison.png}
+	\includegraphics[width=0.9\textwidth]{images/mdn-dense-cnn-baseline-comparison.png}
 	\caption{Comparison of neural baselines and mixture-density variants across benchmark slices.}
 	\label{fig:mdn-dense-cnn-baseline-comparison}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/mdn-dense-cnn-baseline-comparison-mainmeter.png}
+	\includegraphics[width=0.9\textwidth]{images/mdn-dense-cnn-baseline-comparison-mainmeter.png}
 	\caption{Benchmark comparison on the building main meter, highlighting feature-only and stochastic output effects.}
 	\label{fig:mdn-dense-cnn-baseline-comparison-mainmeter}
 \end{figure}
@@ -151,7 +151,7 @@ This comparison is visualized in Figure~\ref{fig:chronos-vs-cnnmdn}.
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/chronos-vs-cnnmdn.png}
+	\includegraphics[width=0.9\textwidth]{images/chronos-vs-cnnmdn.png}
 	\caption{Chronos-2 vs. \texttt{CNN\_\allowbreak MDN} under season-matched three-month baselines.}
 	\label{fig:chronos-vs-cnnmdn}
 \end{figure}
@@ -167,7 +167,7 @@ Figure~\ref{fig:seasonal-distance} summarizes this translation sensitivity.
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/sesonal-distance.png}
+	\includegraphics[width=0.7\textwidth]{images/sesonal-distance.png}
 	\caption{Seasonal translation sensitivity of mean \ac{VUS-PR} versus seasonal distance.}
 	\label{fig:seasonal-distance}
 \end{figure}
@@ -186,7 +186,7 @@ retraining pipelines. This simultaneously strengthens practical scalability
 normality (~\textbf{O\ref{obj:contextual-fidelity}}).
 
 Trainable baselines require explicit per-meter fitting and repeated retraining to track
-non-stationarity, implying fragile orchestration at scale. Persisting anomalies are
+non-stationarity, implying fragile orchestration at scale; persisting anomalies are
 prevented from contaminating the adaptive reference by applying Strategy~B from
 Section~\ref{sec:inference-time-imputation}, which operationalizes
 ~\textbf{O\ref{obj:persistence-preservation}} in the deployed pipeline.
@@ -197,4 +197,5 @@ which satisfy ~\textbf{O\ref{obj:distributional-validity}} sufficiently for
 deployment. These quantile envelopes enable \ac{QBB} anomaly scoring without
 parametric assumptions and avoid the instability and coverage gaps observed for
 mixture-density architectures, while remaining competitive in detection accuracy.
+
 

@@ -17,7 +17,7 @@ Building energy data is inherently multivariate and interdependent. In addition 
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/multivariate-timeseries.png}
+	\includegraphics[width=0.9\textwidth]{images/multivariate-timeseries.png}
 	\caption{Representative multivariate time series showing the main meter load together with occupancy (people count) and outdoor temperature. The plot illustrates how multiple interdependent variables evolve jointly over time.}
 	\label{fig:multivariate-timeseries}
 \end{figure}
@@ -28,7 +28,7 @@ Building energy data is inherently multivariate and interdependent. In addition 
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=\textwidth]{images/Energy-Causal-Chain.jpg}
+	\includegraphics[width=0.9\textwidth]{images/Energy-Causal-Chain.jpg}
 	\caption{Causal chain of building energy consumption from demand over control to supply layer.}
 	\label{fig:energy-causal-chain}
 \end{figure}
@@ -74,7 +74,7 @@ Empirical building-energy distributions deviate substantially from unimodal Gaus
 Sparse coverage of extreme weather and rare operational states introduces causal ambiguity and increases false anomaly rates for previously unobserved but physically valid conditions. Furthermore, building-energy telemetry is non-stationary; long-term baseline drift caused by seasonal transitions, equipment degradation, and persistent occupancy changes continuously shifts normative distributions, necessitating probabilistic, context-aware modeling.
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.9\textwidth]{images/mixture-destribution.png}
+	\includegraphics[width=0.7\textwidth]{images/mixture-destribution.png}
 	\caption{Empirical distribution of the building's main meter (15-minute kWh values, histogram) with an overlaid single normal distribution and a Gaussian mixture model with five components, illustrating the mismatch between a unimodal Gaussian model and the multimodal, heavy-tailed structure of real building energy data.}
 	\label{fig:mixture-distribution}
 \end{figure}
@@ -113,7 +113,7 @@ Anomaly detection aims to identify observations or patterns that deviate from an
 The complexity of anomaly detection is governed by the dimensionality of the time series and the number of normative operational regimes.
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/Univariate-Multivariate-normalities.jpg}
+	\includegraphics[width=0.9\textwidth]{images/Univariate-Multivariate-normalities.jpg}
 	\caption{Schematic illustration of time series types along two axes---dimensionality (univariate vs.~multivariate) and normality regimes (single-mode vs.~multi-mode). Adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
 	\label{fig:univariate-multivariate-normalities}
 \end{figure}
@@ -139,9 +139,9 @@ Accordingly, all experimental investigations in this work address single-target,
 
 \subsection{Structural Classes of Anomalies}
 \label{subsec:structural-classes-anomalies}
-\begin{figure}[H]
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/types-anomalies.jpg}
+	\includegraphics[width=0.9\textwidth]{images/types-anomalies.jpg}
 	\caption{Taxonomy of time series anomalies along structural and multiplicity dimensions, distinguishing global and contextual point anomalies, subsequence-based anomalies, and their occurrence as single, multiple different, or multiple similar events. Adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
 	\label{fig:anomaly-taxonomy}
 \end{figure}
@@ -172,7 +172,7 @@ Most detection algorithms output an anomaly score $s_i$ per timestamp, which qua
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=\textwidth]{images/anomaly_score.png}
+	\includegraphics[width=0.8\textwidth]{images/anomaly_score.png}
 	\caption{Example of an anomaly score $s_i \in [0,1]$ aligned with the underlying time series. A threshold of 0.8 separates normal points from those flagged as anomalous.}
 	\label{fig:anomaly-score}
 \end{figure}
@@ -182,7 +182,7 @@ Most detection algorithms output an anomaly score $s_i$ per timestamp, which qua
 The applicability of detection methods is governed by the availability of labelled data:
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\textwidth]{images/superviced-unsuperviced.jpg}
+	\includegraphics[width=0.9\textwidth]{images/superviced-unsuperviced.jpg}
 	\caption{Schematic overview of supervised, semi-supervised, and unsupervised learning paradigms for anomaly detection, adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
 	\label{fig:learning-paradigms}
 \end{figure}
@@ -204,7 +204,7 @@ Anomaly detection approaches are grouped into three methodological families:
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\textwidth]{images/distance-dencity-forecast.jpg}
+	\includegraphics[width=0.9\textwidth]{images/distance-dencity-forecast.jpg}
 	\caption{Hierarchical taxonomy of anomaly detection methods grouped into distance-based, density-based, and prediction-based families, adapted from Boniol et al.'s tutorial on new trends in time series anomaly detection~\cite{boniol2023edbt-tutorial}.}
 	\label{fig:method-taxonomy}
 \end{figure}
